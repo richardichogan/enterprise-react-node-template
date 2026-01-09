@@ -1,0 +1,16 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: Number('<FRONTEND_PORT:3000>'),
+    // Enable proxy only in full-stack variant
+    // proxy: {
+    //   '/api': 'http://localhost:<API_PORT:3001>'
+    // }
+  },
+  build: {
+    outDir: 'dist'
+  }
+})

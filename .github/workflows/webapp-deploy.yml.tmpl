@@ -1,0 +1,54 @@
+name: Web App Deploy (API)
+
+on:
+  workflow_dispatch:
+
+env:
+  AZURE_SUBSCRIPTION_ID: <AZURE_SUBSCRIPTION_ID>
+  RESOURCE_GROUP: <RESOURCE_GROUP>
+  WEBAPP_NAME: <WEBAPP_NAME>
+  NODE_VERSION: '20'
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (Service Principal)
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install API deps
+        working-directory: server
+        run: npm ci
+
+      - name: Zip API package
+        run: |
+          cd server
+          zip -r ../api.zip . -x "node_modules/*"
+
+      - name: Configure App Settings
+        run: |
+          az webapp config appsettings set \
+            --name $WEBAPP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --settings WEBSITE_RUN_FROM_PACKAGE=1 WEBSITE_NODE_DEFAULT_VERSION=$NODE_VERSION
+
+      - name: Deploy via config-zip
+        run: |
+          az webapp deployment source config-zip \
+            --name $WEBAPP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --src api.zip
+
+      - name: Warmup
+        run: |
+          echo "Warming up /healthz" || true

@@ -1,0 +1,38 @@
+Param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('status','start','stop','restart','logs')]
+    [string]$Action
+)
+
+# Template server manager. Replace placeholders and extend logic as needed.
+$FRONTEND_DIR = "frontend"
+$API_DIR = "server"
+$FRONTEND_PORT = <FRONTEND_PORT:3000>
+$API_PORT = <API_PORT:3001>
+
+function Show-Status {
+    Write-Host "Frontend port:" $FRONTEND_PORT
+    Write-Host "API port:" $API_PORT
+    Write-Host "Check running processes and ports as needed (template)."
+}
+
+function Start-Services {
+    Write-Host "Starting frontend (template): cd $FRONTEND_DIR; npm run dev"
+    Write-Host "Starting API (template): cd $API_DIR; npm run dev"
+}
+
+function Stop-Services {
+    Write-Host "Stopping services (template). Implement process tracking if desired."
+}
+
+function Show-Logs {
+    Write-Host "Show logs (template). Wire to your log locations."
+}
+
+switch ($Action) {
+    'status' { Show-Status }
+    'start' { Start-Services }
+    'stop' { Stop-Services }
+    'restart' { Stop-Services; Start-Services }
+    'logs' { Show-Logs }
+}

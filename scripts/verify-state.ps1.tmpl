@@ -1,0 +1,11 @@
+Write-Host "Verify State (Template)"
+
+Write-Host "1) Node version >= 20?"
+node -v
+
+Write-Host "2) Env files present?"
+if (Test-Path "frontend/.env.example") { Write-Host "frontend/.env.example found" }
+if (Test-Path "server/.env.example") { Write-Host "server/.env.example found" }
+
+Write-Host "3) Ports available?"
+Write-Host "Check <FRONTEND_PORT:3000> and <API_PORT:3001> as needed"

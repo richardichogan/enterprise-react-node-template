@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Frontend - Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend - Test
+        working-directory: frontend
+        run: npm test --silent --if-present
+
+      - name: Frontend - Build
+        working-directory: frontend
+        run: npm run build --if-present
+
+      - name: API - Install
+        if: ${{ hashFiles('server/package.json') != '' }}
+        working-directory: server
+        run: npm ci
+
+      - name: API - Lint
+        if: ${{ hashFiles('server/package.json') != '' }}
+        working-directory: server
+        run: npm run lint --if-present
+
+      - name: API - Test
+        if: ${{ hashFiles('server/package.json') != '' }}
+        working-directory: server
+        run: npm test --silent --if-present
