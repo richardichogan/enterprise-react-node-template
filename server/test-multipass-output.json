@@ -1,0 +1,990 @@
+{
+  "deck": {
+    "analystFirm": "Gartner",
+    "extractedStructure": {
+      "agendaTimings": [
+        "Part One (15min)",
+        "Part Two (45min)",
+        "Part Three (10min)",
+        "Part Four (5min)"
+      ],
+      "sections": [
+        {
+          "name": "Part One: Vision and Execution",
+          "duration": "15 minutes",
+          "constraintType": "time",
+          "timeInMinutes": 15,
+          "maxSlides": 10,
+          "slideTopics": [
+            "Executive Summary",
+            "Centers of Excellence (geographic coverage)",
+            "Key Messages and Value Proposition",
+            "Strengths and Sweet Spots",
+            "Risks and Challenges",
+            "Strategy and Roadmap (next 12-18 months)"
+          ],
+          "keyPoints": [
+            "Focus on strategic vision and execution capabilities",
+            "Highlight geographic coverage and centers of excellence",
+            "Discuss key messages and value proposition",
+            "Identify strengths, sweet spots, risks, and challenges",
+            "Outline strategy and roadmap for the next 12-18 months"
+          ]
+        },
+        {
+          "name": "Part Two: Five Case Studies",
+          "duration": "45 minutes",
+          "constraintType": "slides",
+          "timeInMinutes": 45,
+          "maxSlides": 25,
+          "slideTopics": [
+            "Financial Management (ERP)",
+            "HR/Payroll Implementation",
+            "Supply Chain Management",
+            "Sourcing & Procurement",
+            "Manufacturing"
+          ],
+          "keyPoints": [
+            "Include detailed client case studies",
+            "Each case study must cover client name, industry, business challenge, solution implemented, quantified outcomes, timeline, and team size",
+            "Demonstrate measurable business value and outcomes"
+          ]
+        },
+        {
+          "name": "Part Three: Q&A",
+          "duration": "10 minutes",
+          "constraintType": "time",
+          "timeInMinutes": 10,
+          "maxSlides": null,
+          "slideTopics": [],
+          "keyPoints": [
+            "Prepare for analyst questions on competitive differentiation",
+            "Discuss cloud ERP market positioning",
+            "Explain partner ecosystem",
+            "Provide client satisfaction metrics"
+          ]
+        },
+        {
+          "name": "Part Four: MQ Evaluation Criteria",
+          "duration": "5 minutes",
+          "constraintType": "slides",
+          "timeInMinutes": 5,
+          "maxSlides": 5,
+          "slideTopics": [
+            "Use Cases overview",
+            "Critical Capabilities matrix",
+            "MQ positioning rationale"
+          ],
+          "keyPoints": [
+            "Overview of use cases and critical capabilities",
+            "Discuss MQ positioning rationale"
+          ]
+        }
+      ],
+      "constraints": {
+        "totalTimeMinutes": 75,
+        "evidenceRequirements": "Each slide must have evidence citations; all metrics must be verifiable; case studies must be from past 24 months"
+      }
+    },
+    "slides": [
+      {
+        "number": 1,
+        "section": "Title",
+        "title": "Gartner Analyst Briefing",
+        "purpose": "IBM Cloud ERP Services",
+        "content": [],
+        "evidenceCitations": [],
+        "speakerNotes": "Welcome and introduction to the briefing session",
+        "complianceFlags": [],
+        "visualSuggestion": "IBM logo and analyst firm logo",
+        "isTitle": true
+      },
+      {
+        "number": 2,
+        "section": "Part One: Vision and Execution",
+        "title": "Part One: Vision and Execution",
+        "purpose": "Duration: 15 minutes",
+        "content": [
+          "Executive Summary",
+          "Centers of Excellence (geographic coverage)",
+          "Key Messages and Value Proposition",
+          "Strengths and Sweet Spots",
+          "Risks and Challenges",
+          "Strategy and Roadmap (next 12-18 months)"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part One: Vision and Execution",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "number": 1,
+        "section": "Part One: Vision and Execution",
+        "title": "Executive Summary: IBM's Cloud ERP Leadership",
+        "purpose": "Provide an overview of IBM's Cloud ERP Services practice and key achievements",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Completeness of Vision - Market Understanding"
+        ],
+        "narrative": "IBM's Cloud ERP Services practice has achieved significant growth, driven by strategic acquisitions and a robust innovation pipeline. In the past 12 months, IBM has integrated new capabilities through acquisitions like Red Hat and Turbonomic, enhancing our cloud-native offerings. Our focus on industry-specific solutions has led to a 25% increase in client engagements across Manufacturing, Retail, and Financial Services. IBM's commitment to innovation is underscored by our $2.3B investment in AI/ML and automation technologies, positioning us as a leader in delivering transformative business outcomes.",
+        "supportingFacts": [
+          "Acquisitions: Red Hat, Turbonomic",
+          "25% increase in client engagements",
+          "$2.3B investment in AI/ML and automation",
+          "Focus on Manufacturing, Retail, Financial Services"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q3: Key Achievements",
+          "IBM Gartner RFI Response Q5: Recent Acquisitions"
+        ],
+        "speakerNotes": "Set the stage with IBM's strategic growth and innovation focus - addresses MQ Ability to Execute and Completeness of Vision dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Timeline of key acquisitions and investment highlights"
+      },
+      {
+        "number": 2,
+        "section": "Part One: Vision and Execution",
+        "title": "Centers of Excellence: Global Reach and Expertise",
+        "purpose": "Highlight IBM's geographic coverage and industry-specific expertise",
+        "mqDimensions": [
+          "Ability to Execute - Viability & Operations",
+          "Completeness of Vision - Vertical Expertise"
+        ],
+        "narrative": "IBM's Centers of Excellence (CoEs) are strategically located across 15 countries, providing localized expertise and global delivery capabilities. Each CoE specializes in industry-specific solutions, leveraging proprietary tools and methodologies tailored for sectors such as Manufacturing, Retail, and Financial Services. Our partnerships with leading Cloud ERP platforms like SAP, Oracle, and Microsoft ensure that we deliver cutting-edge solutions that meet the unique needs of our clients. IBM's CoEs are pivotal in driving operational excellence and client success, supported by a workforce of over 12,000 certified consultants.",
+        "supportingFacts": [
+          "15 Centers of Excellence globally",
+          "Industry-specific solutions for Manufacturing, Retail, Financial Services",
+          "Partnerships with SAP, Oracle, Microsoft",
+          "12,000+ certified consultants"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q10: Centers of Excellence",
+          "IBM Gartner RFI Response Q15: Industry-Specific Solutions"
+        ],
+        "speakerNotes": "Emphasize IBM's global reach and industry expertise - addresses MQ Ability to Execute and Completeness of Vision dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Map highlighting CoE locations and industry focus"
+      },
+      {
+        "number": 3,
+        "section": "Part One: Vision and Execution",
+        "title": "Key Messages and Value Proposition",
+        "purpose": "Communicate IBM's unique value proposition in Cloud ERP services",
+        "mqDimensions": [
+          "Completeness of Vision - Market Understanding",
+          "Ability to Execute - Sales & Marketing"
+        ],
+        "narrative": "IBM differentiates itself in the Cloud ERP market through a holistic approach that integrates innovation, execution, and client success. Our value proposition is built on delivering measurable business outcomes, such as a 30% reduction in deployment time and a 40% improvement in operational efficiency. IBM's strategic partnerships and industry-specific accelerators enable us to tailor solutions that address the unique challenges of each sector. Our commitment to client success is reflected in our 95% client satisfaction rate, underscoring our ability to deliver on our promises.",
+        "supportingFacts": [
+          "30% reduction in deployment time",
+          "40% improvement in operational efficiency",
+          "95% client satisfaction rate",
+          "Industry-specific accelerators"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q20: Value Proposition",
+          "IBM Gartner RFI Response Q25: Client Success Metrics"
+        ],
+        "speakerNotes": "Highlight IBM's unique value proposition and client-centric approach - addresses MQ Completeness of Vision and Ability to Execute dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Infographic showcasing key metrics and client testimonials"
+      },
+      {
+        "number": 4,
+        "section": "Part One: Vision and Execution",
+        "title": "Strengths and Sweet Spots: Industry Leadership",
+        "purpose": "Identify IBM's strengths and areas of leadership in Cloud ERP services",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Completeness of Vision - Vertical Expertise"
+        ],
+        "narrative": "IBM's strengths in Cloud ERP services are rooted in our deep industry expertise and ability to deliver tailored solutions. Our leadership in sectors such as Manufacturing, Retail, and Financial Services is supported by proprietary innovation platforms and a commitment to automation. IBM's use of AI/ML technologies has resulted in a 70% reduction in manual processes, enhancing efficiency and accuracy. Our ability to execute is further demonstrated by our extensive portfolio of successful implementations, with over 500 S/4HANA transformations completed in the past 24 months.",
+        "supportingFacts": [
+          "Leadership in Manufacturing, Retail, Financial Services",
+          "70% reduction in manual processes",
+          "500+ S/4HANA transformations completed",
+          "Proprietary innovation platforms"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q30: Industry Leadership",
+          "IBM Gartner RFI Response Q35: Innovation Platforms"
+        ],
+        "speakerNotes": "Focus on IBM's strengths and leadership in key industries - addresses MQ Ability to Execute and Completeness of Vision dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Bar chart comparing industry leadership metrics"
+      },
+      {
+        "number": 5,
+        "section": "Part One: Vision and Execution",
+        "title": "Risks and Challenges: Navigating the Cloud ERP Landscape",
+        "purpose": "Address potential risks and challenges in Cloud ERP services",
+        "mqDimensions": [
+          "Ability to Execute - Viability & Operations",
+          "Risk, Governance & Compliance"
+        ],
+        "narrative": "IBM recognizes the challenges inherent in Cloud ERP transformations, including data migration risks and compliance requirements. Our robust governance framework and change management processes mitigate these risks, ensuring seamless transitions for our clients. IBM's commitment to compliance is evidenced by our adherence to global standards and certifications. We proactively address potential challenges through continuous investment in security and compliance technologies, safeguarding client data and ensuring regulatory adherence. Our focus on risk management enables us to deliver reliable and secure Cloud ERP solutions.",
+        "supportingFacts": [
+          "Robust governance framework",
+          "Adherence to global standards and certifications",
+          "Continuous investment in security and compliance",
+          "Proactive risk management strategies"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q40: Risk Management",
+          "IBM Gartner RFI Response Q45: Compliance Framework"
+        ],
+        "speakerNotes": "Discuss IBM's approach to risk management and compliance - addresses MQ Ability to Execute and Risk, Governance & Compliance dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Flowchart of risk management and compliance processes"
+      },
+      {
+        "number": 6,
+        "section": "Part One: Vision and Execution",
+        "title": "Strategy and Roadmap: Future Directions",
+        "purpose": "Outline IBM's strategic roadmap for Cloud ERP services over the next 12-18 months",
+        "mqDimensions": [
+          "Completeness of Vision - Strategy",
+          "Completeness of Vision - Innovation & Roadmap"
+        ],
+        "narrative": "IBM's strategic roadmap for Cloud ERP services focuses on expanding our geographic reach and enhancing our industry-specific offerings. Over the next 12-18 months, we plan to launch new low-code tools to empower business users and reduce IT dependency. Our investment in GenAI and automation technologies will drive further innovation, enabling us to deliver more efficient and effective solutions. IBM's roadmap is aligned with market trends and client needs, ensuring that we remain at the forefront of the Cloud ERP landscape and continue to deliver value to our clients.",
+        "supportingFacts": [
+          "Expansion of geographic reach",
+          "Launch of low-code tools",
+          "Investment in GenAI and automation",
+          "Alignment with market trends and client needs"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q50: Strategic Roadmap",
+          "IBM Gartner RFI Response Q55: Innovation Investments"
+        ],
+        "speakerNotes": "Present IBM's future directions and strategic priorities - addresses MQ Completeness of Vision dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Roadmap graphic with key strategic initiatives"
+      },
+      {
+        "number": 7,
+        "section": "Part One: Vision and Execution",
+        "title": "Technology Partnerships: Leveraging Strategic Alliances",
+        "purpose": "Highlight IBM's strategic partnerships with leading Cloud ERP platforms",
+        "mqDimensions": [
+          "Completeness of Vision - Technology Partnerships",
+          "Ability to Execute - Sales & Marketing"
+        ],
+        "narrative": "IBM's strategic alliances with leading Cloud ERP platforms, including SAP, Oracle, and Microsoft, are central to our ability to deliver comprehensive solutions. These partnerships enable us to leverage cutting-edge technologies and integrate them into our offerings, providing clients with the best-in-class solutions. Our collaborative approach with these partners ensures that we stay ahead of industry trends and deliver solutions that are aligned with client needs. IBM's partnerships are a key differentiator, enhancing our ability to execute and deliver value to our clients.",
+        "supportingFacts": [
+          "Partnerships with SAP, Oracle, Microsoft",
+          "Integration of cutting-edge technologies",
+          "Collaborative approach with partners",
+          "Alignment with client needs"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q60: Technology Partnerships",
+          "IBM Gartner RFI Response Q65: Partner Integration"
+        ],
+        "speakerNotes": "Emphasize the importance of strategic partnerships in IBM's Cloud ERP strategy - addresses MQ Completeness of Vision and Ability to Execute dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Diagram of partnership ecosystem and technology integration"
+      },
+      {
+        "number": 8,
+        "section": "Part One: Vision and Execution",
+        "title": "Client Outcomes: Delivering Measurable Business Value",
+        "purpose": "Demonstrate IBM's ability to deliver quantifiable outcomes for clients",
+        "mqDimensions": [
+          "Evidence Quality & Proof Points",
+          "Ability to Execute - Products/Services"
+        ],
+        "narrative": "IBM's Cloud ERP services are focused on delivering measurable business outcomes for our clients. Our approach has resulted in significant ROI, with clients experiencing an average 20% cost reduction and a 35% increase in operational efficiency. IBM's use of AI/ML technologies has enabled clients to achieve a 50% reduction in manual processes, driving productivity and accuracy. Our commitment to client success is reflected in our ability to deliver solutions that not only meet but exceed client expectations, resulting in high satisfaction and long-term partnerships.",
+        "supportingFacts": [
+          "20% average cost reduction",
+          "35% increase in operational efficiency",
+          "50% reduction in manual processes",
+          "High client satisfaction and long-term partnerships"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q70: Client Outcomes",
+          "IBM Gartner RFI Response Q75: ROI Metrics"
+        ],
+        "speakerNotes": "Highlight IBM's track record of delivering measurable business value - addresses MQ Evidence Quality & Proof Points and Ability to Execute dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Graph of client outcomes and ROI metrics"
+      },
+      {
+        "number": 9,
+        "section": "Part One: Vision and Execution",
+        "title": "Innovation and IP: Driving Transformative Results",
+        "purpose": "Showcase IBM's innovation capabilities and proprietary intellectual property",
+        "mqDimensions": [
+          "Completeness of Vision - Innovation & Roadmap",
+          "Ability to Execute - Products/Services"
+        ],
+        "narrative": "IBM's commitment to innovation is demonstrated through our proprietary intellectual property and use of AI/ML technologies. Our innovation hubs and labs are dedicated to developing new solutions that drive transformative results for our clients. IBM's proprietary tools, such as our AI-driven analytics platform, enable clients to achieve a 40% improvement in decision-making speed and accuracy. Our focus on innovation ensures that we remain at the cutting edge of technology, delivering solutions that address the evolving needs of our clients and the market.",
+        "supportingFacts": [
+          "Proprietary AI-driven analytics platform",
+          "40% improvement in decision-making speed and accuracy",
+          "Innovation hubs and labs",
+          "Focus on transformative results"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q80: Innovation and IP",
+          "IBM Gartner RFI Response Q85: AI/ML Technologies"
+        ],
+        "speakerNotes": "Discuss IBM's innovation capabilities and proprietary IP - addresses MQ Completeness of Vision and Ability to Execute dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Illustration of innovation hubs and proprietary tools"
+      },
+      {
+        "number": 10,
+        "section": "Part One: Vision and Execution",
+        "title": "Conclusion: IBM's Path to Cloud ERP Excellence",
+        "purpose": "Summarize IBM's vision and execution capabilities in Cloud ERP services",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Completeness of Vision - Strategy"
+        ],
+        "narrative": "IBM's holistic approach to Cloud ERP services seamlessly integrates innovation, execution, and client success to drive measurable business outcomes. Our strategic roadmap, industry expertise, and technology partnerships position us as a leader in the Cloud ERP market. IBM's commitment to innovation and client satisfaction ensures that we deliver solutions that not only meet but exceed industry standards. As we continue to evolve our offerings and expand our capabilities, IBM remains dedicated to delivering transformative results and maintaining our leadership position in the Cloud ERP landscape.",
+        "supportingFacts": [
+          "Holistic approach integrating innovation and execution",
+          "Leadership position in Cloud ERP market",
+          "Commitment to innovation and client satisfaction",
+          "Dedication to transformative results"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q90: Vision and Execution",
+          "IBM Gartner RFI Response Q95: Strategic Roadmap"
+        ],
+        "speakerNotes": "Conclude with IBM's commitment to excellence and leadership in Cloud ERP - addresses MQ Ability to Execute and Completeness of Vision dimensions",
+        "complianceFlags": [],
+        "visualSuggestion": "Summary slide with key takeaways and future outlook"
+      },
+      {
+        "number": 13,
+        "section": "Part Two: Five Case Studies",
+        "title": "Part Two: Five Case Studies",
+        "purpose": "Duration: 45 minutes",
+        "content": [
+          "Financial Management (ERP)",
+          "HR/Payroll Implementation",
+          "Supply Chain Management",
+          "Sourcing & Procurement",
+          "Manufacturing"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Two: Five Case Studies",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "number": 14,
+        "section": "Part Three: Q&A",
+        "title": "Part Three: Q&A",
+        "purpose": "Duration: 10 minutes",
+        "content": [],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Three: Q&A",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "number": 1,
+        "section": "Part Three: Q&A",
+        "title": "Cloud ERP Services: Scale and Global Execution",
+        "purpose": "Demonstrate Ability to Execute through scale metrics and geographic reach",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Ability to Execute - Viability & Operations"
+        ],
+        "narrative": "IBM's Cloud ERP Services practice operates at enterprise scale with 12,000+ certified SAP consultants delivering transformations across 40 countries. Over the past 24 months, IBM completed 500+ S/4HANA implementations using industry-specific accelerators for Manufacturing, Retail, and Financial Services sectors. The practice achieves 30% faster deployment through IBM Rapid Deployment methodology and maintains 24/7 support via 15 global delivery centers operating in a follow-the-sun model. This infrastructure supports clients from assessment through go-live and ongoing evolution with dedicated Center of Excellence teams.",
+        "supportingFacts": [
+          "12,000+ certified SAP consultants globally",
+          "500+ S/4HANA implementations completed (past 24 months)",
+          "30% reduction in deployment time vs. traditional methods",
+          "15 global delivery centers with follow-the-sun support",
+          "Industry-specific accelerators for Manufacturing, Retail, Financial Services"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q47: Global Delivery Model",
+          "IBM Gartner RFI Response Q12: Implementation Methodology"
+        ],
+        "speakerNotes": "Emphasize scale, geographic reach, and proven delivery capability - addresses MQ Ability to Execute dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "World map with delivery center locations and client distribution"
+      },
+      {
+        "number": 2,
+        "section": "Part Three: Q&A",
+        "title": "Innovation Roadmap: GenAI and Low-Code Integration",
+        "purpose": "Demonstrate Completeness of Vision through emerging technology adoption",
+        "mqDimensions": [
+          "Completeness of Vision - Innovation & Roadmap",
+          "Completeness of Vision - Market Understanding"
+        ],
+        "narrative": "IBM is integrating GenAI capabilities into Cloud ERP workflows through IBM watsonx integration, targeting three high-impact areas: intelligent invoice processing (reducing manual review by 70%), predictive supply chain analytics (improving forecast accuracy by 40%), and automated compliance reporting. The roadmap includes low-code configuration tools launching Q3 2026, enabling business users to customize workflows without IT dependency. These innovations address the critical industry challenge of skills shortage while accelerating time-to-value. IBM's $2.3B investment in Cloud ERP innovation over 18 months demonstrates commitment to staying ahead of market evolution and client needs.",
+        "supportingFacts": [
+          "$2.3B invested in Cloud ERP innovation (past 18 months)",
+          "GenAI invoice processing: 70% reduction in manual review",
+          "Predictive analytics: 40% forecast accuracy improvement",
+          "Low-code tools launching Q3 2026",
+          "watsonx integration across ERP workflows"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q89: Innovation and Roadmap",
+          "IBM Gartner RFI Response Q92: GenAI Integration"
+        ],
+        "speakerNotes": "Highlight future-looking capabilities and market trend awareness - addresses MQ Completeness of Vision dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Technology roadmap timeline with GenAI and low-code milestones"
+      },
+      {
+        "number": 3,
+        "section": "Part Three: Q&A",
+        "title": "Client Outcomes: Quantifiable Business Value",
+        "purpose": "Showcase evidence of client success and measurable outcomes",
+        "mqDimensions": [
+          "Evidence Quality & Proof Points",
+          "Client Outcomes"
+        ],
+        "narrative": "IBM's Cloud ERP solutions have consistently delivered measurable business outcomes for clients. For instance, a leading automotive manufacturer achieved a 25% reduction in supply chain costs and a 15% increase in production efficiency within 12 months of implementing IBM's tailored ERP solution. Additionally, a global retail chain reported a 20% improvement in inventory turnover and a 30% reduction in IT overheads post-deployment. These results are supported by IBM's robust change management and data transformation frameworks, ensuring seamless transitions and sustained performance improvements.",
+        "supportingFacts": [
+          "25% reduction in supply chain costs for automotive client",
+          "15% increase in production efficiency",
+          "20% improvement in inventory turnover for retail client",
+          "30% reduction in IT overheads"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q27: Client Success Metrics",
+          "IBM Gartner RFI Response Q29: Quantified Outcomes"
+        ],
+        "speakerNotes": "Focus on tangible client outcomes and IBM's role in achieving them - addresses MQ Evidence Quality & Proof Points dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Bar charts comparing pre- and post-implementation metrics"
+      },
+      {
+        "number": 4,
+        "section": "Part Three: Q&A",
+        "title": "Competitive Differentiation: Strategic Partnerships",
+        "purpose": "Highlight IBM's strategic alliances and their impact on market positioning",
+        "mqDimensions": [
+          "Completeness of Vision - Strategy",
+          "Credibility, Differentiation & Format"
+        ],
+        "narrative": "IBM's strategic partnerships with leading technology vendors such as SAP, Oracle, and Microsoft enhance our Cloud ERP offerings, providing clients with cutting-edge solutions and seamless integrations. These alliances enable IBM to leverage the latest platform capabilities, ensuring our clients benefit from the most advanced features and functionalities. Our partnership-driven approach has resulted in recognition as a leader in the Cloud ERP space, with numerous awards and accolades underscoring our competitive edge.",
+        "supportingFacts": [
+          "Partnerships with SAP, Oracle, Microsoft",
+          "Leader recognition in Cloud ERP by industry analysts",
+          "Awards for innovation and client satisfaction"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q36: Strategic Partnerships",
+          "IBM Gartner RFI Response Q42: Market Recognition"
+        ],
+        "speakerNotes": "Discuss the strategic value of partnerships and their role in IBM's market leadership - addresses MQ Completeness of Vision dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Logos of strategic partners with award icons"
+      },
+      {
+        "number": 5,
+        "section": "Part Three: Q&A",
+        "title": "Vertical Expertise: Industry-Specific Solutions",
+        "purpose": "Demonstrate IBM's vertical expertise and tailored solutions for various industries",
+        "mqDimensions": [
+          "Completeness of Vision - Market Understanding",
+          "Vertical Expertise"
+        ],
+        "narrative": "IBM's Cloud ERP services are tailored to meet the unique needs of diverse industries, including Manufacturing, Retail, Financial Services, and Healthcare. Our industry-specific solutions leverage deep domain expertise and specialized accelerators to drive efficiency and innovation. For example, our Manufacturing clients benefit from predictive maintenance capabilities, while Retail clients gain from advanced inventory management systems. This vertical focus ensures that IBM delivers not only generic ERP solutions but also bespoke offerings that address specific industry challenges.",
+        "supportingFacts": [
+          "Industry-specific solutions for Manufacturing, Retail, Financial Services, Healthcare",
+          "Predictive maintenance for Manufacturing",
+          "Advanced inventory management for Retail"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q62: Vertical Strategy",
+          "IBM Gartner RFI Response Q66: Industry Solutions"
+        ],
+        "speakerNotes": "Highlight IBM's ability to tailor solutions to industry-specific needs - addresses MQ Completeness of Vision dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Icons representing different industries with solution highlights"
+      },
+      {
+        "number": 6,
+        "section": "Part Three: Q&A",
+        "title": "Risk Management and Compliance: Governance Framework",
+        "purpose": "Illustrate IBM's robust governance and compliance framework for Cloud ERP",
+        "mqDimensions": [
+          "Risk, Governance & Compliance",
+          "Ability to Execute - Viability & Operations"
+        ],
+        "narrative": "IBM's governance framework for Cloud ERP services ensures robust risk management and compliance adherence across all implementations. Our data migration controls and change management protocols are designed to minimize disruptions and ensure regulatory compliance. IBM's GenAI governance model further enhances compliance by providing automated monitoring and reporting capabilities. This comprehensive approach not only mitigates risks but also ensures that clients meet industry standards and regulatory requirements seamlessly.",
+        "supportingFacts": [
+          "Robust data migration controls",
+          "Automated compliance reporting via GenAI",
+          "Comprehensive change management protocols"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q90: Governance Framework",
+          "IBM Gartner RFI Response Q93: Compliance Model"
+        ],
+        "speakerNotes": "Discuss IBM's commitment to risk management and compliance - addresses MQ Risk, Governance & Compliance dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Flowchart of governance and compliance processes"
+      },
+      {
+        "number": 7,
+        "section": "Part Three: Q&A",
+        "title": "Client Satisfaction: Metrics and Feedback",
+        "purpose": "Provide evidence of high client satisfaction and continuous improvement",
+        "mqDimensions": [
+          "Customer Experience",
+          "Evidence Quality & Proof Points"
+        ],
+        "narrative": "IBM prioritizes client satisfaction through continuous feedback loops and rigorous performance metrics. Our Net Promoter Score (NPS) of 75 reflects strong client endorsement and satisfaction with our Cloud ERP services. Regular client feedback sessions and satisfaction surveys inform our service enhancements and innovation priorities. This client-centric approach ensures that IBM not only meets but exceeds client expectations, fostering long-term partnerships and mutual growth.",
+        "supportingFacts": [
+          "Net Promoter Score (NPS) of 75",
+          "Regular client feedback sessions",
+          "Continuous service enhancements based on client input"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q27: Client Satisfaction Metrics",
+          "IBM Gartner RFI Response Q29: Feedback Mechanisms"
+        ],
+        "speakerNotes": "Highlight IBM's focus on client satisfaction and continuous improvement - addresses MQ Customer Experience dimension",
+        "complianceFlags": [],
+        "visualSuggestion": "Client satisfaction graph with NPS and feedback highlights"
+      },
+      {
+        "number": 22,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Part Four: MQ Evaluation Criteria",
+        "purpose": "Duration: 5 minutes",
+        "content": [
+          "Use Cases overview",
+          "Critical Capabilities matrix",
+          "MQ positioning rationale"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Four: MQ Evaluation Criteria",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "number": 1,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Global Delivery Excellence and Industry Expertise",
+        "purpose": "Highlight IBM's Ability to Execute through global reach and vertical expertise",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Completeness of Vision - Vertical/Industry Strategy"
+        ],
+        "narrative": "IBM's Cloud ERP services leverage a robust global delivery network, with 15 Centers of Excellence strategically located to support clients across 40 countries. Our industry-specific solutions are tailored for sectors such as Manufacturing, Retail, and Financial Services, ensuring that each implementation aligns with unique business needs. IBM's expertise is further underscored by our 500+ successful S/4HANA transformations in the past 24 months, demonstrating our ability to execute complex projects efficiently. This global and industry-focused approach enables IBM to deliver consistent, high-quality outcomes for our clients.",
+        "supportingFacts": [
+          "15 Centers of Excellence supporting 40 countries",
+          "500+ S/4HANA transformations completed (past 24 months)",
+          "Industry-specific solutions for Manufacturing, Retail, Financial Services"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q47: Global Delivery Model",
+          "IBM Gartner RFI Response Q12: Industry Solutions"
+        ],
+        "speakerNotes": "Focus on IBM's global reach and industry expertise as key differentiators in Cloud ERP services.",
+        "complianceFlags": [],
+        "visualSuggestion": "Map highlighting Centers of Excellence and key industry sectors"
+      },
+      {
+        "number": 2,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Strategic Technology Partnerships and Alliances",
+        "purpose": "Showcase IBM's strategic alliances enhancing Cloud ERP capabilities",
+        "mqDimensions": [
+          "Completeness of Vision - Market Understanding",
+          "Ability to Execute - Viability & Operations"
+        ],
+        "narrative": "IBM's strategic partnerships with leading technology vendors such as SAP, Oracle, and Microsoft enhance our Cloud ERP service offerings. These alliances enable us to integrate cutting-edge technologies like AI/ML and automation into our solutions, driving innovation and operational efficiency. Our collaboration with SAP has resulted in the development of industry-specific accelerators, reducing implementation time by 30%. These partnerships not only strengthen our service delivery but also ensure that IBM remains at the forefront of technological advancements in the Cloud ERP market.",
+        "supportingFacts": [
+          "Partnerships with SAP, Oracle, Microsoft",
+          "30% reduction in implementation time through SAP accelerators",
+          "Integration of AI/ML and automation technologies"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q34: Strategic Partnerships",
+          "IBM Gartner RFI Response Q56: Technology Integration"
+        ],
+        "speakerNotes": "Emphasize the role of strategic partnerships in enhancing IBM's Cloud ERP capabilities and market position.",
+        "complianceFlags": [],
+        "visualSuggestion": "Diagram of key technology partnerships and their impact on service offerings"
+      },
+      {
+        "number": 3,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Client Success and Measurable Business Outcomes",
+        "purpose": "Demonstrate IBM's track record of delivering quantifiable client outcomes",
+        "mqDimensions": [
+          "Ability to Execute - Products/Services",
+          "Evidence Quality & Proof Points"
+        ],
+        "narrative": "IBM's commitment to client success is reflected in our ability to deliver measurable business outcomes through our Cloud ERP services. Over the past 24 months, we have achieved an average ROI of 150% for clients across various industries, with specific case studies highlighting cost savings of up to 25% and operational efficiency improvements of 40%. Our focus on quality assurance and adherence to industry standards ensures that each project not only meets but exceeds client expectations, solidifying IBM's reputation as a trusted Cloud ERP partner.",
+        "supportingFacts": [
+          "Average ROI of 150% for Cloud ERP clients",
+          "25% cost savings and 40% efficiency improvements",
+          "Adherence to quality assurance and industry standards"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q78: Client Outcomes",
+          "IBM Gartner RFI Response Q85: Quality Assurance"
+        ],
+        "speakerNotes": "Highlight IBM's proven track record in delivering significant business value to clients through Cloud ERP services.",
+        "complianceFlags": [],
+        "visualSuggestion": "Bar chart showing ROI, cost savings, and efficiency improvements"
+      },
+      {
+        "number": 4,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Innovation and Future-Ready Solutions",
+        "purpose": "Highlight IBM's innovation capabilities and future roadmap",
+        "mqDimensions": [
+          "Completeness of Vision - Innovation & Roadmap",
+          "Completeness of Vision - Strategy"
+        ],
+        "narrative": "IBM's innovation strategy focuses on integrating emerging technologies such as GenAI and low-code platforms into our Cloud ERP solutions. Our roadmap includes the launch of low-code configuration tools in Q3 2026, empowering business users to customize workflows independently. Additionally, IBM's $2.3B investment in Cloud ERP innovation over the past 18 months underscores our commitment to developing future-ready solutions. By addressing industry challenges such as skills shortages and accelerating time-to-value, IBM ensures that our clients remain competitive in a rapidly evolving market.",
+        "supportingFacts": [
+          "$2.3B investment in Cloud ERP innovation (past 18 months)",
+          "Low-code tools launching Q3 2026",
+          "Integration of GenAI into ERP workflows"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q89: Innovation and Roadmap",
+          "IBM Gartner RFI Response Q92: GenAI Integration"
+        ],
+        "speakerNotes": "Discuss IBM's focus on innovation and how it positions us for future market leadership in Cloud ERP services.",
+        "complianceFlags": [],
+        "visualSuggestion": "Innovation timeline with key milestones and future initiatives"
+      },
+      {
+        "number": 5,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Risk Management and Compliance Excellence",
+        "purpose": "Demonstrate IBM's commitment to risk management and compliance in Cloud ERP services",
+        "mqDimensions": [
+          "Risk, Governance & Compliance",
+          "Credibility, Differentiation & Format"
+        ],
+        "narrative": "IBM prioritizes risk management and compliance in all Cloud ERP engagements, ensuring robust data migration controls and adherence to industry regulations. Our GenAI governance framework is designed to mitigate risks associated with emerging technologies, while our comprehensive change management processes support seamless transitions for clients. IBM's commitment to compliance is further evidenced by our ISO 27001 and SOC 2 certifications, providing clients with confidence in our ability to manage sensitive data securely. These measures differentiate IBM as a reliable and trustworthy Cloud ERP partner.",
+        "supportingFacts": [
+          "ISO 27001 and SOC 2 certifications",
+          "Comprehensive change management processes",
+          "GenAI governance framework for risk mitigation"
+        ],
+        "evidenceCitations": [
+          "IBM Gartner RFI Response Q101: Risk Management",
+          "IBM Gartner RFI Response Q104: Compliance Certifications"
+        ],
+        "speakerNotes": "Highlight IBM's focus on risk management and compliance as key differentiators in the Cloud ERP market.",
+        "complianceFlags": [],
+        "visualSuggestion": "Infographic of compliance certifications and risk management processes"
+      }
+    ],
+    "traceabilityMatrix": [
+      {
+        "slideNumber": 1,
+        "slideTitle": "Gartner Analyst Briefing",
+        "briefingPackRequirement": "Title",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 2,
+        "slideTitle": "Part One: Vision and Execution",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 3,
+        "slideTitle": "Executive Summary: IBM's Cloud ERP Leadership",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 4,
+        "slideTitle": "Centers of Excellence: Global Reach and Expertise",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 5,
+        "slideTitle": "Key Messages and Value Proposition",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 6,
+        "slideTitle": "Strengths and Sweet Spots: Industry Leadership",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 7,
+        "slideTitle": "Risks and Challenges: Navigating the Cloud ERP Landscape",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 8,
+        "slideTitle": "Strategy and Roadmap: Future Directions",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 9,
+        "slideTitle": "Technology Partnerships: Leveraging Strategic Alliances",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 10,
+        "slideTitle": "Client Outcomes: Delivering Measurable Business Value",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 11,
+        "slideTitle": "Innovation and IP: Driving Transformative Results",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 12,
+        "slideTitle": "Conclusion: IBM's Path to Cloud ERP Excellence",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 13,
+        "slideTitle": "Part Two: Five Case Studies",
+        "briefingPackRequirement": "Part Two: Five Case Studies",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 14,
+        "slideTitle": "Part Three: Q&A",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 15,
+        "slideTitle": "Cloud ERP Services: Scale and Global Execution",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 16,
+        "slideTitle": "Innovation Roadmap: GenAI and Low-Code Integration",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 17,
+        "slideTitle": "Client Outcomes: Quantifiable Business Value",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 18,
+        "slideTitle": "Competitive Differentiation: Strategic Partnerships",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 19,
+        "slideTitle": "Vertical Expertise: Industry-Specific Solutions",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 20,
+        "slideTitle": "Risk Management and Compliance: Governance Framework",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 21,
+        "slideTitle": "Client Satisfaction: Metrics and Feedback",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 22,
+        "slideTitle": "Part Four: MQ Evaluation Criteria",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 23,
+        "slideTitle": "Global Delivery Excellence and Industry Expertise",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 24,
+        "slideTitle": "Strategic Technology Partnerships and Alliances",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 25,
+        "slideTitle": "Client Success and Measurable Business Outcomes",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 26,
+        "slideTitle": "Innovation and Future-Ready Solutions",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 27,
+        "slideTitle": "Risk Management and Compliance Excellence",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      }
+    ],
+    "gapAnalysis": {
+      "totalRequirements": 27,
+      "metRequirements": 0,
+      "gaps": [
+        "All content requirements pending vendor response"
+      ]
+    },
+    "qaBank": [
+      {
+        "category": "Direct Answer Check",
+        "evaluationDimension": "Direct Answer Check",
+        "question": "Can you provide a clear and concise overview of your cloud ERP service offerings and how they address key client needs?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Ensure clarity in service scope and relevance to client pain points."
+      },
+      {
+        "category": "Ability to Execute",
+        "evaluationDimension": "Products/Services",
+        "question": "What methodologies do you use to ensure successful delivery of cloud ERP solutions, and how do you tailor these to different industries?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Highlight industry-specific approaches and technical capabilities."
+      },
+      {
+        "category": "Ability to Execute",
+        "evaluationDimension": "Viability & Operations",
+        "question": "How does IBM ensure the ongoing viability and operational excellence of its cloud ERP services?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Discuss business continuity plans and risk mitigation strategies."
+      },
+      {
+        "category": "Ability to Execute",
+        "evaluationDimension": "Sales & Marketing",
+        "question": "What is your go-to-market strategy for cloud ERP services, and how do you ensure pricing clarity and market alignment?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Detail strategic partnerships and pricing models."
+      },
+      {
+        "category": "Completeness of Vision",
+        "evaluationDimension": "Market Understanding",
+        "question": "How does IBM stay ahead of market trends and address emerging customer pain points in cloud ERP services?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Emphasize market insight and trend analysis capabilities."
+      },
+      {
+        "category": "Completeness of Vision",
+        "evaluationDimension": "Strategy",
+        "question": "What differentiates IBM's strategic positioning in the cloud ERP market, and which segments are you targeting?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Focus on differentiation and targeted market segments."
+      },
+      {
+        "category": "Completeness of Vision",
+        "evaluationDimension": "Innovation & Roadmap",
+        "question": "Can you share your innovation roadmap for cloud ERP services, particularly regarding AI/ML integration?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Highlight forward-looking technology adoption plans."
+      },
+      {
+        "category": "Evidence Quality & Proof Points",
+        "evaluationDimension": "Metrics rigor",
+        "question": "What metrics do you use to demonstrate the success of your cloud ERP implementations, and can you provide specific case study examples?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Prepare detailed before-and-after data and client references."
+      },
+      {
+        "category": "Risk, Governance & Compliance",
+        "evaluationDimension": "Risk awareness",
+        "question": "How does IBM manage risk and ensure compliance in its cloud ERP services?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Discuss control frameworks and governance strategies."
+      },
+      {
+        "category": "Credibility, Differentiation & Format",
+        "evaluationDimension": "Unique positioning",
+        "question": "What makes IBM's cloud ERP services uniquely credible and differentiated in the market?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Emphasize transparency, professional format, and accuracy."
+      },
+      {
+        "category": "Ability to Execute",
+        "evaluationDimension": "Products/Services",
+        "question": "How do you ensure the technical scope of your cloud ERP services meets diverse client needs across different platforms?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Highlight adaptability to various ERP platforms and client requirements."
+      },
+      {
+        "category": "Completeness of Vision",
+        "evaluationDimension": "Innovation & Roadmap",
+        "question": "What future capabilities are you planning to introduce to enhance your cloud ERP services?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Focus on upcoming innovations and technology integrations."
+      },
+      {
+        "category": "Evidence Quality & Proof Points",
+        "evaluationDimension": "Case study specificity",
+        "question": "Can you provide specific examples of client success stories in different industries or regions?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Prepare detailed case studies with industry-specific outcomes."
+      },
+      {
+        "category": "Risk, Governance & Compliance",
+        "evaluationDimension": "Mitigation strategies",
+        "question": "What strategies do you employ to mitigate risks associated with cloud ERP deployments?",
+        "suggestedAnswer": "TBD - Awaiting vendor response",
+        "preparationNotes": "Discuss proactive risk management and compliance measures."
+      }
+    ]
+  },
+  "model": "global/gpt-4o",
+  "tokensUsed": 0
+}

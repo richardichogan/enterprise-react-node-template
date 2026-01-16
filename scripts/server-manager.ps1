@@ -45,6 +45,13 @@ function Show-Status {
 }
 
 function Start-Services {
+    # Close any orphaned PowerShell windows running npm before starting
+    Write-Host "Cleaning up old PowerShell windows..."
+    Get-Process powershell -ErrorAction SilentlyContinue | Where-Object { 
+        $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine
+        $cmdLine -match "npm run dev"
+    } | Stop-Process -Force -ErrorAction SilentlyContinue
+
     Write-Host "Starting frontend (port $FrontendPort) in new terminal..."
     Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd `"$FrontendDir`"; npm run dev"
 
@@ -68,6 +75,13 @@ function Stop-Services {
     } else {
         Write-Host "API not running on port $ApiPort"
     }
+    
+    # Close any PowerShell windows that were running the servers
+    Start-Sleep -Milliseconds 500
+    Get-Process powershell -ErrorAction SilentlyContinue | Where-Object { 
+        $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine
+        $cmdLine -match "npm run dev"
+    } | Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 function Show-Logs {

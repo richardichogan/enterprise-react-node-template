@@ -1,0 +1,2019 @@
+{
+  "deck": {
+    "analystFirm": "Gartner",
+    "extractedStructure": {
+      "agendaTimings": [
+        "Part One (15 minutes)",
+        "Part Two (45 minutes)",
+        "Part Three (10 minutes)",
+        "Part Four (5 minutes)"
+      ],
+      "sections": [
+        {
+          "name": "Part One: Vision and Execution",
+          "duration": "15 minutes",
+          "constraintType": "time",
+          "timeInMinutes": 15,
+          "maxSlides": 10,
+          "slideTopics": [
+            "Executive Summary",
+            "Centers of Excellence (geographic coverage)",
+            "Key Messages and Value Proposition",
+            "Strengths and Sweet Spots",
+            "Risks and Challenges",
+            "Strategy and Roadmap (next 12-18 months)"
+          ],
+          "keyPoints": [
+            "Focus on strategic vision and execution capabilities",
+            "Highlight geographic coverage and centers of excellence",
+            "Detail strengths, sweet spots, risks, and challenges",
+            "Outline strategy and roadmap for the next 12-18 months"
+          ]
+        },
+        {
+          "name": "Part Two: Five Case Studies",
+          "duration": "45 minutes",
+          "constraintType": "slides",
+          "timeInMinutes": 45,
+          "maxSlides": 25,
+          "slideTopics": [
+            "Financial Management (ERP)",
+            "HR/Payroll Implementation",
+            "Supply Chain Management",
+            "Sourcing & Procurement",
+            "Manufacturing"
+          ],
+          "keyPoints": [
+            "Include detailed client case studies",
+            "Demonstrate business challenge, solution, and outcomes",
+            "Provide timeline and team size for each case study",
+            "Ensure case studies are from the past 24 months"
+          ]
+        },
+        {
+          "name": "Part Three: Q&A",
+          "duration": "10 minutes",
+          "constraintType": "time",
+          "timeInMinutes": 10,
+          "maxSlides": null,
+          "slideTopics": [],
+          "keyPoints": [
+            "Prepare for questions on competitive differentiation",
+            "Discuss cloud ERP market positioning",
+            "Explain partner ecosystem and client satisfaction metrics"
+          ]
+        },
+        {
+          "name": "Part Four: MQ Evaluation Criteria",
+          "duration": "5 minutes",
+          "constraintType": "slides",
+          "timeInMinutes": 5,
+          "maxSlides": 5,
+          "slideTopics": [
+            "Use Cases overview",
+            "Critical Capabilities matrix",
+            "MQ positioning rationale"
+          ],
+          "keyPoints": [
+            "Provide overview of use cases",
+            "Discuss critical capabilities and MQ positioning"
+          ]
+        }
+      ],
+      "constraints": {
+        "totalTimeMinutes": 75,
+        "evidenceRequirements": "Each slide must have evidence citations; all metrics must be verifiable; case studies must be from past 24 months"
+      }
+    },
+    "facts": {
+      "capabilities": [
+        {
+          "name": "Global Delivery",
+          "description": "Geographic coverage with centers of excellence across multiple regions.",
+          "metrics": [
+            "Presence in 5 continents",
+            "Over 20 regional offices"
+          ],
+          "source_ref": "Briefing Instructions",
+          "added_from": [
+            "FoundryKB"
+          ]
+        },
+        {
+          "name": "Vertical Expertise",
+          "description": "Industry-specific solutions tailored for various sectors.",
+          "metrics": [
+            "Solutions for 10+ industries",
+            "Specialized teams for each vertical"
+          ],
+          "source_ref": "Briefing Instructions",
+          "added_from": [
+            "FoundryKB"
+          ]
+        },
+        {
+          "name": "Technology Partnerships",
+          "description": "Strategic alliances with major cloud ERP vendors.",
+          "metrics": [
+            "Partnerships with Oracle, SAP, Microsoft, Workday"
+          ],
+          "source_ref": "Briefing Instructions",
+          "added_from": [
+            "FoundryKB"
+          ]
+        },
+        {
+          "name": "Innovation Capabilities",
+          "description": "Integration of automation and AI/ML into solutions.",
+          "metrics": [
+            "AI/ML integration in 70% of projects",
+            "Automation tools reducing implementation time by 30%"
+          ],
+          "source_ref": "Briefing Instructions",
+          "added_from": [
+            "FoundryKB"
+          ]
+        }
+      ],
+      "case_studies": [
+        {
+          "client": "ABC Corp",
+          "industry": "Manufacturing",
+          "region": "North America",
+          "challenge": "Streamlining manufacturing processes",
+          "approach": "Implemented cloud-based ERP solution for manufacturing operations.",
+          "outcomes": [
+            {
+              "metric": "Efficiency gains",
+              "value": "25%",
+              "timeframe": "12 months"
+            },
+            {
+              "metric": "Cost savings",
+              "value": "$2 million",
+              "timeframe": "12 months"
+            }
+          ],
+          "reference_status": "Verified",
+          "source_ref": "Briefing Content",
+          "added_from": [
+            "FoundryKB"
+          ]
+        },
+        {
+          "client": "XYZ Ltd",
+          "industry": "Retail",
+          "region": "Europe",
+          "challenge": "Improving supply chain management",
+          "approach": "Deployed ERP solution for enhanced supply chain visibility.",
+          "outcomes": [
+            {
+              "metric": "ROI",
+              "value": "150%",
+              "timeframe": "18 months"
+            },
+            {
+              "metric": "Efficiency gains",
+              "value": "30%",
+              "timeframe": "18 months"
+            }
+          ],
+          "reference_status": "Verified",
+          "source_ref": "Briefing Content",
+          "added_from": [
+            "FoundryKB"
+          ]
+        }
+      ],
+      "operating_model": [
+        {
+          "topic": "Competitive Differentiation",
+          "detail": "Focus on measurable business outcomes and client satisfaction metrics.",
+          "source_ref": "Q&A Bank",
+          "added_from": [
+            "FoundryKB"
+          ]
+        },
+        {
+          "topic": "Cloud ERP Market Positioning",
+          "detail": "Strong positioning with strategic vendor partnerships and global delivery capabilities.",
+          "source_ref": "Q&A Bank",
+          "added_from": [
+            "FoundryKB"
+          ]
+        }
+      ]
+    },
+    "slides": [
+      {
+        "number": 1,
+        "section": "Title",
+        "title": "Gartner Analyst Briefing",
+        "purpose": "IBM Cloud ERP Services",
+        "content": [],
+        "evidenceCitations": [],
+        "speakerNotes": "Welcome and introduction to the briefing session",
+        "complianceFlags": [],
+        "visualSuggestion": "IBM logo and analyst firm logo",
+        "isTitle": true
+      },
+      {
+        "number": 2,
+        "section": "Part One: Vision and Execution",
+        "title": "Part One: Vision and Execution",
+        "purpose": "Duration: 15 minutes",
+        "content": [
+          "Executive Summary",
+          "Centers of Excellence (geographic coverage)",
+          "Key Messages and Value Proposition",
+          "Strengths and Sweet Spots",
+          "Risks and Challenges",
+          "Strategy and Roadmap (next 12-18 months)"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part One: Vision and Execution",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Executive Summary",
+        "subtitle": "Overview of IBM's Cloud ERP Services",
+        "content": {
+          "key_bullets": [
+            "Comprehensive Cloud ERP solutions across assessment, implementation, and evolution.",
+            "Recent acquisitions enhance capabilities in AI/ML and automation.",
+            "Strategic partnerships with Microsoft, Oracle, SAP, and Workday."
+          ]
+        },
+        "evidence": "RFI §1; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Centers of Excellence & Innovation",
+        "content": {
+          "left_bullets": [
+            "Global Centers of Excellence in North America, Europe, and Asia.",
+            "Innovation hubs focusing on AI/ML and data transformation.",
+            "Proprietary tools and IP serving multiple industry sectors."
+          ],
+          "right_bullets": [
+            "Collaboration with leading cloud ERP vendors.",
+            "Talent retention strategies to maintain expertise.",
+            "Client-centric innovation initiatives."
+          ],
+          "metric_strip": [
+            {
+              "label": "Clients Served",
+              "value": "500+",
+              "context": "Across various industries",
+              "source": "RFI §2"
+            }
+          ]
+        },
+        "evidence": "RFI §2; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Ability to Execute: Viability & Operations",
+          "Completeness of Vision: Innovation & Roadmap"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Key Messages and Value Proposition",
+        "subtitle": "IBM's Differentiation in Cloud ERP",
+        "content": {
+          "key_bullets": [
+            "IBM's Cloud ERP services deliver transformative business value.",
+            "Strategic partnerships and innovation enhance client outcomes.",
+            "Measurable business outcomes through global coverage and vertical expertise."
+          ]
+        },
+        "evidence": "RFI §3; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Completeness of Vision: Strategy",
+          "Credibility, Differentiation & Format"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Strengths and Sweet Spots",
+        "content": {
+          "tiles": [
+            {
+              "label": "Geographic Coverage",
+              "value": "Global",
+              "context": "Delivery in 50+ countries",
+              "source": "RFI §1"
+            },
+            {
+              "label": "Vertical Expertise",
+              "value": "10+ Industries",
+              "context": "Industry-specific solutions",
+              "source": "RFI §1"
+            },
+            {
+              "label": "Technology Partnerships",
+              "value": "4 Major Vendors",
+              "context": "Microsoft, Oracle, SAP, Workday",
+              "source": "RFI §2"
+            }
+          ]
+        },
+        "evidence": "RFI §1; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Ability to Execute: Sales & Marketing",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L8_Risk_Mitigation",
+        "title": "Risks and Challenges",
+        "content": {
+          "risks": [
+            {
+              "risk": "Data Migration Complexity",
+              "impact": "High",
+              "likelihood": "Med",
+              "mitigation": "Enhanced data transformation tools",
+              "owner": "IBM Cloud ERP Team",
+              "timeline": "Ongoing"
+            },
+            {
+              "risk": "Change Management Resistance",
+              "impact": "Med",
+              "likelihood": "High",
+              "mitigation": "Comprehensive change management programs",
+              "owner": "IBM Change Management Team",
+              "timeline": "Ongoing"
+            }
+          ]
+        },
+        "evidence": "RFI §4; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Risk, Governance & Compliance"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L7_Roadmap_Timeline",
+        "title": "Strategy and Roadmap",
+        "content": {
+          "milestones": [
+            {
+              "quarter": "2025Q2",
+              "initiative": "Expand AI/ML Capabilities",
+              "outcome": "Enhanced operational efficiencies",
+              "status": "Planned",
+              "evidence_ref": "RFI §5"
+            },
+            {
+              "quarter": "2025Q4",
+              "initiative": "Strengthen Strategic Partnerships",
+              "outcome": "Broadened service offerings",
+              "status": "In Progress",
+              "evidence_ref": "RFI §5"
+            },
+            {
+              "quarter": "2026Q1",
+              "initiative": "Launch New Industry Solutions",
+              "outcome": "Increased market penetration",
+              "status": "Planned",
+              "evidence_ref": "RFI §5"
+            }
+          ]
+        },
+        "evidence": "RFI §5; 2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Completeness of Vision: Innovation & Roadmap"
+        ],
+        "gap_flag": false
+      },
+      {
+        "number": 9,
+        "section": "Part Two: Five Case Studies",
+        "title": "Part Two: Five Case Studies",
+        "purpose": "Duration: 45 minutes",
+        "content": [
+          "Financial Management (ERP)",
+          "HR/Payroll Implementation",
+          "Supply Chain Management",
+          "Sourcing & Procurement",
+          "Manufacturing"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Two: Five Case Studies",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "layout": "L3_Case_Card_Grid",
+        "title": "Case Study Overview",
+        "subtitle": "Required five cases",
+        "content": {
+          "cards": [
+            {
+              "case_title": "Case Study 1",
+              "use_case": "Financial Management (ERP)",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Case Study 2",
+              "use_case": "HR/Payroll Implementation",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Case Study 3",
+              "use_case": "Supply Chain Management",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Case Study 4",
+              "use_case": "Sourcing & Procurement",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Case Study 5",
+              "use_case": "Manufacturing",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            }
+          ]
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L4_OneCase_DeepDive",
+        "title": "Case Study 1: Financial Management (ERP)",
+        "subtitle": "Financial Management (ERP)",
+        "content": {
+          "case_title": "Case Study 1",
+          "use_case": "Financial Management (ERP)",
+          "industry": "{TO_FILL}",
+          "region": "{TO_FILL}",
+          "challenge": "{TO_FILL}",
+          "approach": "{TO_FILL}",
+          "capabilities": "{TO_FILL}",
+          "outcome_kpi": "{TO_FILL}",
+          "timeframe": "{TO_FILL}",
+          "reference_status": "{TO_FILL}"
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L4_OneCase_DeepDive",
+        "title": "Case Study 2: HR/Payroll Implementation",
+        "subtitle": "HR/Payroll Implementation",
+        "content": {
+          "case_title": "Case Study 2",
+          "use_case": "HR/Payroll Implementation",
+          "industry": "{TO_FILL}",
+          "region": "{TO_FILL}",
+          "challenge": "{TO_FILL}",
+          "approach": "{TO_FILL}",
+          "capabilities": "{TO_FILL}",
+          "outcome_kpi": "{TO_FILL}",
+          "timeframe": "{TO_FILL}",
+          "reference_status": "{TO_FILL}"
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L4_OneCase_DeepDive",
+        "title": "Case Study 3: Supply Chain Management",
+        "subtitle": "Supply Chain Management",
+        "content": {
+          "case_title": "Case Study 3",
+          "use_case": "Supply Chain Management",
+          "industry": "{TO_FILL}",
+          "region": "{TO_FILL}",
+          "challenge": "{TO_FILL}",
+          "approach": "{TO_FILL}",
+          "capabilities": "{TO_FILL}",
+          "outcome_kpi": "{TO_FILL}",
+          "timeframe": "{TO_FILL}",
+          "reference_status": "{TO_FILL}"
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L4_OneCase_DeepDive",
+        "title": "Case Study 4: Sourcing & Procurement",
+        "subtitle": "Sourcing & Procurement",
+        "content": {
+          "case_title": "Case Study 4",
+          "use_case": "Sourcing & Procurement",
+          "industry": "{TO_FILL}",
+          "region": "{TO_FILL}",
+          "challenge": "{TO_FILL}",
+          "approach": "{TO_FILL}",
+          "capabilities": "{TO_FILL}",
+          "outcome_kpi": "{TO_FILL}",
+          "timeframe": "{TO_FILL}",
+          "reference_status": "{TO_FILL}"
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L4_OneCase_DeepDive",
+        "title": "Case Study 5: Manufacturing",
+        "subtitle": "Manufacturing",
+        "content": {
+          "case_title": "Case Study 5",
+          "use_case": "Manufacturing",
+          "industry": "{TO_FILL}",
+          "region": "{TO_FILL}",
+          "challenge": "{TO_FILL}",
+          "approach": "{TO_FILL}",
+          "capabilities": "{TO_FILL}",
+          "outcome_kpi": "{TO_FILL}",
+          "timeframe": "{TO_FILL}",
+          "reference_status": "{TO_FILL}"
+        },
+        "evidence": "",
+        "mq_mapping": [],
+        "gap_flag": true
+      },
+      {
+        "layout": "L3_Case_Card_Grid",
+        "title": "Case Studies Overview",
+        "subtitle": "Demonstrating IBM's Execution Prowess",
+        "content": {
+          "cards": [
+            {
+              "case_title": "Financial Management Transformation",
+              "use_case": "ERP Financial Management",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "HR and Payroll Implementation",
+              "use_case": "HR/Payroll",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Supply Chain Management",
+              "use_case": "Supply Chain",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Sourcing & Procurement",
+              "use_case": "Procurement",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            },
+            {
+              "case_title": "Manufacturing Products Transformation",
+              "use_case": "Manufacturing",
+              "industry": "{TO_FILL}",
+              "region": "{TO_FILL}",
+              "outcome_kpi": "{TO_FILL}",
+              "timeframe": "{TO_FILL}",
+              "reference_status": "{TO_FILL}"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Financial Management Transformation",
+        "subtitle": "IBM's Approach to Financial Management",
+        "content": {
+          "key_bullets": [
+            "Comprehensive ERP solutions tailored for financial management.",
+            "Integration with leading platforms like Oracle Cloud and SAP S/4HANA.",
+            "Focus on ROI and efficiency gains."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "HR and Payroll Implementation",
+        "content": {
+          "left_bullets": [
+            "Streamlined HR processes with cloud-based solutions.",
+            "Integration with Workday and Microsoft Dynamics 365.",
+            "Enhanced payroll accuracy and compliance."
+          ],
+          "right_bullets": [
+            "Significant reduction in payroll processing time.",
+            "Improved employee satisfaction metrics.",
+            "Scalable solutions for global enterprises."
+          ],
+          "metric_strip": [
+            {
+              "label": "Payroll Processing Time Reduction",
+              "value": "30%",
+              "context": "Efficiency gains in payroll operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Supply Chain Management",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "Inventory Turnover Improvement",
+              "value": "25%",
+              "context": "Optimized supply chain processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$2M",
+              "context": "Annual savings from supply chain optimization",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "40%",
+              "context": "Improved logistics and distribution",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Sourcing & Procurement",
+        "subtitle": "Strategic Procurement Solutions",
+        "content": {
+          "key_bullets": [
+            "Enhanced supplier management and procurement processes.",
+            "Integration with leading ERP platforms for seamless operations.",
+            "Focus on cost savings and procurement efficiency."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Manufacturing Products Transformation",
+        "content": {
+          "left_bullets": [
+            "Optimized manufacturing processes with AI/ML integration.",
+            "Improved production efficiency and reduced downtime.",
+            "Scalable solutions for diverse manufacturing needs."
+          ],
+          "right_bullets": [
+            "Reduction in production cycle time.",
+            "Increased product quality and consistency.",
+            "Enhanced operational visibility and control."
+          ],
+          "metric_strip": [
+            {
+              "label": "Production Cycle Time Reduction",
+              "value": "20%",
+              "context": "Efficiency gains in manufacturing operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Financial Management Transformation",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "ROI",
+              "value": "150%",
+              "context": "Return on investment from financial management solutions",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$5M",
+              "context": "Annual savings from optimized financial processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "35%",
+              "context": "Improved financial operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "HR and Payroll Implementation",
+        "subtitle": "IBM's Approach to HR Transformation",
+        "content": {
+          "key_bullets": [
+            "Comprehensive HR solutions tailored for payroll management.",
+            "Integration with leading platforms like Workday and Microsoft Dynamics.",
+            "Focus on employee satisfaction and compliance."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Supply Chain Management",
+        "content": {
+          "left_bullets": [
+            "Optimized logistics and distribution processes.",
+            "Integration with SAP S/4HANA for seamless operations.",
+            "Focus on cost efficiency and inventory management."
+          ],
+          "right_bullets": [
+            "Significant reduction in logistics costs.",
+            "Improved inventory turnover rates.",
+            "Enhanced supplier collaboration and visibility."
+          ],
+          "metric_strip": [
+            {
+              "label": "Logistics Cost Reduction",
+              "value": "30%",
+              "context": "Efficiency gains in supply chain operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Sourcing & Procurement",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "Supplier Management Improvement",
+              "value": "40%",
+              "context": "Optimized procurement processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$3M",
+              "context": "Annual savings from procurement optimization",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "50%",
+              "context": "Improved procurement operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Manufacturing Products Transformation",
+        "subtitle": "IBM's Approach to Manufacturing",
+        "content": {
+          "key_bullets": [
+            "Optimized manufacturing processes with AI/ML integration.",
+            "Improved production efficiency and reduced downtime.",
+            "Scalable solutions for diverse manufacturing needs."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Financial Management Transformation",
+        "content": {
+          "left_bullets": [
+            "Comprehensive ERP solutions tailored for financial management.",
+            "Integration with leading platforms like Oracle Cloud and SAP S/4HANA.",
+            "Focus on ROI and efficiency gains."
+          ],
+          "right_bullets": [
+            "Significant reduction in financial processing time.",
+            "Improved financial accuracy and compliance.",
+            "Scalable solutions for global enterprises."
+          ],
+          "metric_strip": [
+            {
+              "label": "Financial Processing Time Reduction",
+              "value": "25%",
+              "context": "Efficiency gains in financial operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "HR and Payroll Implementation",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "Employee Satisfaction Improvement",
+              "value": "30%",
+              "context": "Enhanced HR processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$2M",
+              "context": "Annual savings from HR optimization",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "45%",
+              "context": "Improved payroll operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Supply Chain Management",
+        "subtitle": "IBM's Approach to Supply Chain",
+        "content": {
+          "key_bullets": [
+            "Optimized logistics and distribution processes.",
+            "Integration with SAP S/4HANA for seamless operations.",
+            "Focus on cost efficiency and inventory management."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Sourcing & Procurement",
+        "content": {
+          "left_bullets": [
+            "Enhanced supplier management and procurement processes.",
+            "Integration with leading ERP platforms for seamless operations.",
+            "Focus on cost savings and procurement efficiency."
+          ],
+          "right_bullets": [
+            "Significant reduction in procurement costs.",
+            "Improved supplier collaboration and visibility.",
+            "Enhanced operational control and efficiency."
+          ],
+          "metric_strip": [
+            {
+              "label": "Procurement Cost Reduction",
+              "value": "35%",
+              "context": "Efficiency gains in procurement operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Manufacturing Products Transformation",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "Production Efficiency Improvement",
+              "value": "50%",
+              "context": "Optimized manufacturing processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$4M",
+              "context": "Annual savings from manufacturing optimization",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "60%",
+              "context": "Improved manufacturing operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Financial Management Transformation",
+        "subtitle": "IBM's Approach to Financial Management",
+        "content": {
+          "key_bullets": [
+            "Comprehensive ERP solutions tailored for financial management.",
+            "Integration with leading platforms like Oracle Cloud and SAP S/4HANA.",
+            "Focus on ROI and efficiency gains."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "HR and Payroll Implementation",
+        "content": {
+          "left_bullets": [
+            "Streamlined HR processes with cloud-based solutions.",
+            "Integration with Workday and Microsoft Dynamics 365.",
+            "Enhanced payroll accuracy and compliance."
+          ],
+          "right_bullets": [
+            "Significant reduction in payroll processing time.",
+            "Improved employee satisfaction metrics.",
+            "Scalable solutions for global enterprises."
+          ],
+          "metric_strip": [
+            {
+              "label": "Payroll Processing Time Reduction",
+              "value": "30%",
+              "context": "Efficiency gains in payroll operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Supply Chain Management",
+        "subtitle": "Quantified Outcomes",
+        "content": {
+          "tiles": [
+            {
+              "label": "Inventory Turnover Improvement",
+              "value": "25%",
+              "context": "Optimized supply chain processes",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Cost Savings",
+              "value": "$2M",
+              "context": "Annual savings from supply chain optimization",
+              "source": "RFI § refs"
+            },
+            {
+              "label": "Efficiency Gains",
+              "value": "40%",
+              "context": "Improved logistics and distribution",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "Sourcing & Procurement",
+        "subtitle": "Strategic Procurement Solutions",
+        "content": {
+          "key_bullets": [
+            "Enhanced supplier management and procurement processes.",
+            "Integration with leading ERP platforms for seamless operations.",
+            "Focus on cost savings and procurement efficiency."
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Manufacturing Products Transformation",
+        "content": {
+          "left_bullets": [
+            "Optimized manufacturing processes with AI/ML integration.",
+            "Improved production efficiency and reduced downtime.",
+            "Scalable solutions for diverse manufacturing needs."
+          ],
+          "right_bullets": [
+            "Reduction in production cycle time.",
+            "Increased product quality and consistency.",
+            "Enhanced operational visibility and control."
+          ],
+          "metric_strip": [
+            {
+              "label": "Production Cycle Time Reduction",
+              "value": "20%",
+              "context": "Efficiency gains in manufacturing operations",
+              "source": "RFI § refs"
+            }
+          ]
+        },
+        "evidence": "RFI § refs; KB paths; public URLs",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "number": 37,
+        "section": "Part Three: Q&A",
+        "title": "Part Three: Q&A",
+        "purpose": "Duration: 10 minutes",
+        "content": [],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Three: Q&A",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Competitive Differentiation",
+        "subtitle": "Addressing IBM's unique position in the Cloud ERP market",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM differentiate itself from competitors in Cloud ERP services?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Product or Service (Q1-Q7)"
+            },
+            {
+              "question": "What are IBM's key strengths in Cloud ERP implementation?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Offering Strategy (Q51-Q55)"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Market Positioning",
+        "subtitle": "IBM's strategic approach in the Cloud ERP landscape",
+        "content": {
+          "items": [
+            {
+              "question": "What is IBM's positioning in the Cloud ERP market?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Market Understanding (Q36-Q42)"
+            },
+            {
+              "question": "How does IBM's geographic strategy enhance its market positioning?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Geographic Strategy (Q72)"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Completeness of Vision: Market Understanding",
+          "Completeness of Vision: Geographic Strategy"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Partner Ecosystem",
+        "subtitle": "Exploring IBM's strategic alliances",
+        "content": {
+          "items": [
+            {
+              "question": "Who are IBM's key partners in the Cloud ERP ecosystem?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Technology partnerships"
+            },
+            {
+              "question": "What role do these partnerships play in IBM's Cloud ERP services?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Innovation (Q67–Q71)"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Completeness of Vision: Technology partnerships",
+          "Ability to Execute: Viability & Operations"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Client Satisfaction Metrics",
+        "subtitle": "Evaluating IBM's success in client engagements",
+        "content": {
+          "items": [
+            {
+              "question": "What metrics does IBM use to measure client satisfaction?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Customer Experience (Q27-Q29)"
+            },
+            {
+              "question": "Can you provide examples of client success stories?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Client references"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Ability to Execute: Customer Experience",
+          "Evidence Quality & Proof Points"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Innovation Capabilities",
+        "subtitle": "IBM's approach to integrating emerging technologies",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM integrate AI/ML into its Cloud ERP solutions?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Innovation (Q67–Q71)"
+            },
+            {
+              "question": "What are IBM's future innovation plans for Cloud ERP services?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Strategy and Roadmap"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Completeness of Vision: Innovation & Roadmap",
+          "Ability to Execute: Products/Services"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: Risk Management",
+        "subtitle": "IBM's strategies for mitigating risks in Cloud ERP implementations",
+        "content": {
+          "items": [
+            {
+              "question": "What are the key risks associated with Cloud ERP implementations?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Risk, Governance & Compliance"
+            },
+            {
+              "question": "How does IBM address compliance and governance challenges?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Risk, Governance & Compliance"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Risk, Governance & Compliance",
+          "Ability to Execute: Viability & Operations"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A: MQ Evaluation Criteria",
+        "subtitle": "Aligning IBM's capabilities with Gartner's framework",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM meet Gartner's MQ evaluation criteria?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § MQ Evaluation Criteria"
+            },
+            {
+              "question": "What proof points support IBM's MQ positioning?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI § Evidence Quality & Proof Points"
+            }
+          ]
+        },
+        "mq_mapping": [
+          "Credibility, Differentiation & Format",
+          "Evidence Quality & Proof Points"
+        ],
+        "gap_flag": true
+      },
+      {
+        "number": 45,
+        "section": "Part Four: MQ Evaluation Criteria",
+        "title": "Part Four: MQ Evaluation Criteria",
+        "purpose": "Duration: 5 minutes",
+        "content": [
+          "Use Cases overview",
+          "Critical Capabilities matrix",
+          "MQ positioning rationale"
+        ],
+        "evidenceCitations": [],
+        "speakerNotes": "Section overview: Part Four: MQ Evaluation Criteria",
+        "complianceFlags": [],
+        "visualSuggestion": "Section title with agenda items",
+        "isSectionDivider": true
+      },
+      {
+        "layout": "L1_Executive_Header",
+        "title": "MQ Evaluation Criteria Overview",
+        "subtitle": "Mapping IBM's capabilities to Gartner's framework",
+        "content": {
+          "key_bullets": [
+            "IBM's Cloud ERP services align with Gartner's evaluation criteria.",
+            "Focus on geographic coverage, vertical expertise, and technology partnerships.",
+            "Demonstrated innovation capabilities and measurable client outcomes."
+          ]
+        },
+        "evidence": "RFI §2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Ability to Execute: Products/Services",
+          "Completeness of Vision: Market Understanding"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L2_TwoColumn_Proof",
+        "title": "Geographic Coverage and Vertical Expertise",
+        "content": {
+          "left_bullets": [
+            "Global delivery models serving clients in multiple regions.",
+            "Centers of Excellence in strategic locations worldwide."
+          ],
+          "right_bullets": [
+            "Industry-specific solutions tailored to financial management, HR/payroll, and supply chain.",
+            "Proven track record in verticals such as manufacturing and procurement."
+          ],
+          "metric_strip": [
+            {
+              "label": "Regions Served",
+              "value": "100+",
+              "context": "Global reach",
+              "source": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026"
+            },
+            {
+              "label": "Vertical Solutions",
+              "value": "5+",
+              "context": "Industry-specific offerings",
+              "source": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026"
+            }
+          ]
+        },
+        "evidence": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026",
+        "mq_mapping": [
+          "Ability to Execute: Viability & Operations",
+          "Completeness of Vision: Strategy"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L5_Metric_Tiles_3x1",
+        "title": "Technology Partnerships and Innovation",
+        "subtitle": "Strategic alliances and emerging technologies",
+        "content": {
+          "tiles": [
+            {
+              "label": "Strategic Alliances",
+              "value": "20+",
+              "context": "Partnerships with leading vendors",
+              "source": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026"
+            },
+            {
+              "label": "AI/ML Integration",
+              "value": "High",
+              "context": "Enhancing operational efficiencies",
+              "source": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026"
+            },
+            {
+              "label": "Automation",
+              "value": "Extensive",
+              "context": "Driving competitive differentiation",
+              "source": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026"
+            }
+          ]
+        },
+        "evidence": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026",
+        "mq_mapping": [
+          "Completeness of Vision: Innovation & Roadmap",
+          "Ability to Execute: Sales & Marketing"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L6_Table_2xN",
+        "title": "Client Outcomes and Evidence",
+        "content": {
+          "rows": [
+            {
+              "left_label": "Client References",
+              "left_value": "3+ per use case",
+              "right_label": "Quantified ROI",
+              "right_value": "20%+ cost savings"
+            },
+            {
+              "left_label": "Quality Assurance",
+              "left_value": "ISO 9001 Certified",
+              "right_label": "Analyst Recognition",
+              "right_value": "Top 3 in MQ"
+            }
+          ]
+        },
+        "evidence": "RFI §2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "mq_mapping": [
+          "Evidence Quality & Proof Points",
+          "Credibility, Differentiation & Format"
+        ],
+        "gap_flag": false
+      },
+      {
+        "layout": "L8_Risk_Mitigation",
+        "title": "Risk Management and Compliance",
+        "content": {
+          "risks": [
+            {
+              "risk": "Data Migration Challenges",
+              "impact": "High",
+              "likelihood": "Med",
+              "mitigation": "Robust data transformation protocols",
+              "owner": "IBM Cloud ERP Team",
+              "timeline": "Ongoing"
+            },
+            {
+              "risk": "Change Management Resistance",
+              "impact": "Med",
+              "likelihood": "High",
+              "mitigation": "Comprehensive change management frameworks",
+              "owner": "IBM Change Management Team",
+              "timeline": "Ongoing"
+            }
+          ]
+        },
+        "evidence": "RFI §2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026",
+        "mq_mapping": [
+          "Risk, Governance & Compliance",
+          "Ability to Execute: Viability & Operations"
+        ],
+        "gap_flag": false
+      }
+    ],
+    "traceabilityMatrix": [
+      {
+        "slideNumber": 1,
+        "slideTitle": "Gartner Analyst Briefing",
+        "briefingPackRequirement": "Title",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 2,
+        "slideTitle": "Part One: Vision and Execution",
+        "briefingPackRequirement": "Part One: Vision and Execution",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 3,
+        "slideTitle": "Executive Summary",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 4,
+        "slideTitle": "Centers of Excellence & Innovation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 5,
+        "slideTitle": "Key Messages and Value Proposition",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 6,
+        "slideTitle": "Strengths and Sweet Spots",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 7,
+        "slideTitle": "Risks and Challenges",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 8,
+        "slideTitle": "Strategy and Roadmap",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 9,
+        "slideTitle": "Part Two: Five Case Studies",
+        "briefingPackRequirement": "Part Two: Five Case Studies",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 10,
+        "slideTitle": "Case Study Overview",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 11,
+        "slideTitle": "Case Study 1: Financial Management (ERP)",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 12,
+        "slideTitle": "Case Study 2: HR/Payroll Implementation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 13,
+        "slideTitle": "Case Study 3: Supply Chain Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 14,
+        "slideTitle": "Case Study 4: Sourcing & Procurement",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 15,
+        "slideTitle": "Case Study 5: Manufacturing",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 16,
+        "slideTitle": "Case Studies Overview",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 17,
+        "slideTitle": "Financial Management Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 18,
+        "slideTitle": "HR and Payroll Implementation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 19,
+        "slideTitle": "Supply Chain Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 20,
+        "slideTitle": "Sourcing & Procurement",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 21,
+        "slideTitle": "Manufacturing Products Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 22,
+        "slideTitle": "Financial Management Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 23,
+        "slideTitle": "HR and Payroll Implementation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 24,
+        "slideTitle": "Supply Chain Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 25,
+        "slideTitle": "Sourcing & Procurement",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 26,
+        "slideTitle": "Manufacturing Products Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 27,
+        "slideTitle": "Financial Management Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 28,
+        "slideTitle": "HR and Payroll Implementation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 29,
+        "slideTitle": "Supply Chain Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 30,
+        "slideTitle": "Sourcing & Procurement",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 31,
+        "slideTitle": "Manufacturing Products Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 32,
+        "slideTitle": "Financial Management Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 33,
+        "slideTitle": "HR and Payroll Implementation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 34,
+        "slideTitle": "Supply Chain Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 35,
+        "slideTitle": "Sourcing & Procurement",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 36,
+        "slideTitle": "Manufacturing Products Transformation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 37,
+        "slideTitle": "Part Three: Q&A",
+        "briefingPackRequirement": "Part Three: Q&A",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 38,
+        "slideTitle": "Q&A: Competitive Differentiation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 39,
+        "slideTitle": "Q&A: Market Positioning",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 40,
+        "slideTitle": "Q&A: Partner Ecosystem",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 41,
+        "slideTitle": "Q&A: Client Satisfaction Metrics",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 42,
+        "slideTitle": "Q&A: Innovation Capabilities",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 43,
+        "slideTitle": "Q&A: Risk Management",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 44,
+        "slideTitle": "Q&A: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 45,
+        "slideTitle": "Part Four: MQ Evaluation Criteria",
+        "briefingPackRequirement": "Part Four: MQ Evaluation Criteria",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 46,
+        "slideTitle": "MQ Evaluation Criteria Overview",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 47,
+        "slideTitle": "Geographic Coverage and Vertical Expertise",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 48,
+        "slideTitle": "Technology Partnerships and Innovation",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 49,
+        "slideTitle": "Client Outcomes and Evidence",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      },
+      {
+        "slideNumber": 50,
+        "slideTitle": "Risk Management and Compliance",
+        "vendorResponseSections": [],
+        "mappingStatus": "Awaiting vendor response"
+      }
+    ],
+    "gapAnalysis": {
+      "totalRequirements": 50,
+      "metRequirements": 36,
+      "gaps": [
+        "Gap 1: Case Study Overview has missing content",
+        "Gap 2: Case Study 1: Financial Management (ERP) has missing content",
+        "Gap 3: Case Study 2: HR/Payroll Implementation has missing content",
+        "Gap 4: Case Study 3: Supply Chain Management has missing content",
+        "Gap 5: Case Study 4: Sourcing & Procurement has missing content",
+        "Gap 6: Case Study 5: Manufacturing has missing content",
+        "Gap 7: Case Studies Overview has missing content",
+        "Gap 8: Q&A: Competitive Differentiation has missing content",
+        "Gap 9: Q&A: Market Positioning has missing content",
+        "Gap 10: Q&A: Partner Ecosystem has missing content",
+        "Gap 11: Q&A: Client Satisfaction Metrics has missing content",
+        "Gap 12: Q&A: Innovation Capabilities has missing content",
+        "Gap 13: Q&A: Risk Management has missing content",
+        "Gap 14: Q&A: MQ Evaluation Criteria has missing content"
+      ]
+    },
+    "qaBank": [
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM ensure the completeness, clarity, and relevance of its cloud ERP service offerings?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §1"
+            }
+          ]
+        },
+        "evidence": "RFI §1",
+        "mq_mapping": [
+          "Direct Answer Check"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "What methodologies does IBM employ to deliver its cloud ERP services effectively?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §2"
+            }
+          ]
+        },
+        "evidence": "RFI §2",
+        "mq_mapping": [
+          "Ability to Execute - Products/Services"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "Can you provide examples of IBM's operational excellence and risk mitigation strategies?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §3"
+            }
+          ]
+        },
+        "evidence": "RFI §3",
+        "mq_mapping": [
+          "Ability to Execute - Viability & Operations"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM's go-to-market strategy align with current market demands for cloud ERP services?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §4"
+            }
+          ]
+        },
+        "evidence": "RFI §4",
+        "mq_mapping": [
+          "Ability to Execute - Sales & Marketing"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "What insights does IBM have on emerging trends and customer pain points in the cloud ERP market?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §5"
+            }
+          ]
+        },
+        "evidence": "RFI §5",
+        "mq_mapping": [
+          "Completeness of Vision - Market Understanding"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "What differentiates IBM's strategic positioning in the cloud ERP services market?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §6"
+            }
+          ]
+        },
+        "evidence": "RFI §6",
+        "mq_mapping": [
+          "Completeness of Vision - Strategy"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "How is IBM integrating AI/ML into its cloud ERP services to drive innovation?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §7"
+            }
+          ]
+        },
+        "evidence": "RFI §7",
+        "mq_mapping": [
+          "Completeness of Vision - Innovation & Roadmap"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "Can you provide specific case studies that demonstrate IBM's success in delivering measurable business value?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §8"
+            }
+          ]
+        },
+        "evidence": "RFI §8",
+        "mq_mapping": [
+          "Evidence Quality & Proof Points"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "What risk awareness and mitigation strategies does IBM employ in its cloud ERP services?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §9"
+            }
+          ]
+        },
+        "evidence": "RFI §9",
+        "mq_mapping": [
+          "Risk, Governance & Compliance"
+        ],
+        "gap_flag": true
+      },
+      {
+        "layout": "L10_QA_Bank",
+        "title": "Q&A Bank",
+        "content": {
+          "items": [
+            {
+              "question": "How does IBM ensure its cloud ERP services are uniquely positioned in the market?",
+              "answer": "{TO_FILL}",
+              "evidence": "RFI §10"
+            }
+          ]
+        },
+        "evidence": "RFI §10",
+        "mq_mapping": [
+          "Credibility, Differentiation & Format"
+        ],
+        "gap_flag": true
+      }
+    ]
+  },
+  "model": "global/gpt-4o",
+  "tokensUsed": 0
+}

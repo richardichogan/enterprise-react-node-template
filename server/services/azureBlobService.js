@@ -1,5 +1,5 @@
-import { BlobServiceClient } from '@azure/storage-blob';
 import 'dotenv/config';
+import { BlobServiceClient } from '@azure/storage-blob';
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
 const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;

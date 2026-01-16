@@ -42,7 +42,23 @@ This project requires **TWO servers** running simultaneously:
 
 **Why**: Terminal reuse by VS Code's `run_in_terminal` sends SIGINT to running processes, killing them.
 
-### Rule 2: Check Server Status BEFORE Making Code Changes
+### Rule 2: NEVER USE MOCK DATA (MANDATORY - ENFORCED)
+
+⚠️ **CRITICAL**: This application MUST use real Azure OpenAI/Azure services at ALL times.
+
+- ❌ **NEVER** return mock/placeholder responses in ANY service
+- ❌ **NEVER** use fake data, test timestamps, or "lorem ipsum" style content
+- ❌ **NEVER** add conditional logic like `if (process.env.USE_MOCK_DATA)` 
+- ✅ **ALWAYS** call real Azure OpenAI API endpoints
+- ✅ **ALWAYS** handle rate limits with retry logic (exponential backoff)
+- ✅ **ALWAYS** use real document content from Azure Blob Storage
+- ✅ **ALWAYS** use real search results from Azure AI Search
+
+**Why**: Content quality validation depends on real AI-generated output. Mock data wastes user time and money by hiding quality issues until production. Rate limits are handled with automatic retry (10s, 20s, 40s delays).
+
+**Enforcement**: If you add mock data or conditional logic for "dev mode", user will reject your changes immediately. All services must call real Azure APIs.
+
+### Rule 3: Check Server Status BEFORE Making Code Changes
 **Before editing ANY file, run:**
 ```powershell
 .\scripts\server-manager.ps1 status
@@ -75,6 +91,27 @@ Use the dedicated PowerShell script for all server operations:
 3. NEVER try to "fix" with background processes, `Start-Job`, or other hacks
 
 **Why**: Workarounds create more problems (orphaned processes, unknown states).
+
+### Rule 6: RESEARCH LIBRARY CAPABILITIES BEFORE IMPLEMENTATION ⚠️ CRITICAL
+**MANDATORY**: Before writing ANY code that uses a library feature:
+1. ✅ **CHECK documentation** for that EXACT feature (e.g., "can pptxgenjs load template files?")
+2. ✅ **SEARCH for examples** of that feature actually working
+3. ✅ **ASK USER** if uncertain whether library supports the feature
+4. ❌ **NEVER assume** a library has a feature just because it seems logical
+5. ❌ **NEVER implement** first and test later
+
+**Recent Example - DO NOT REPEAT**:
+- ❌ Implemented `pres.load(templatePath)` for pptxgenjs
+- ❌ Assumed template loading was supported
+- ❌ Wasted 30+ minutes on code that fundamentally cannot work
+- ✅ Should have checked: "Does pptxgenjs support loading .potx templates?" → NO
+
+**Enforcement**: If you implement a feature without verifying library support:
+1. User will point it out (wasted time/money)
+2. You must add this incident to this rule as a warning example
+3. Research library alternatives BEFORE proposing new solution
+
+**Why**: Prevents implementing impossible features, saves user time and frustration.
 
 ---
 
@@ -138,6 +175,69 @@ Use the dedicated PowerShell script for all server operations:
 ---
 
 ## 💻 Development Patterns
+
+### Testing Requirements (MANDATORY)
+
+**CRITICAL**: Always test code changes before claiming they work.
+
+#### Testing Levels
+
+1. **Backend Unit Tests** (`server/test-*.js`)
+   - Tests: Functions execute, JSON valid, properties exist
+   - Does NOT test: UI integration, content accuracy, real documents
+   - Run: `node server/test-multipass-simple.js`
+
+2. **End-to-End UI Tests** (`docs/testing/E2E-TEST-CHECKLIST.md`)
+   - Tests: Complete user workflow, all fields display, content accuracy
+   - **Required for AI-generated content**: Spot-check for hallucinations
+   - Run: `.\scripts\test-before-commit.ps1`
+
+#### Pre-Commit Protocol
+
+**MANDATORY before committing changes to:**
+- Backend AI services
+- AI prompts or system messages
+- Briefing deck generation
+- Any AI-powered features
+
+**Steps**:
+1. Run backend unit tests
+2. Restart servers: `.\scripts\server-manager.ps1 restart`
+3. Complete E2E checklist: `docs/testing/E2E-TEST-CHECKLIST.md`
+4. **Validate content accuracy**: Spot-check against source documents
+5. Update session notes with test results
+
+**Pass Criteria**:
+- ✅ All tests pass
+- ✅ UI displays all fields correctly
+- ✅ **Zero hallucinations** found in spot-checks
+- ✅ Content traces to source documents
+
+**Failure Protocol**:
+- Document failure in session notes
+- Identify root cause
+- Fix and re-test COMPLETE checklist
+- Do NOT commit until passing
+
+#### Content Validation for AI Features
+
+**AI Hallucination Check** (see `docs/testing/CONTENT-VALIDATION.md`):
+- [ ] 3 random slide titles verified in briefing pack
+- [ ] 2 compliance flags verified in briefing pack
+- [ ] 1 Q&A answer verified in vendor response
+- [ ] All metrics have citations or marked "TBD"
+- [ ] All company names verified in source documents
+- [ ] No generic/plausible-sounding fabrications
+
+**Red Flags**:
+- Generic compliance rules ("Do not include confidential information")
+- Metrics without citations
+- Company/product names not in source
+- Technical capabilities not mentioned in response
+
+**Validation Rule**: If content sounds plausible but isn't in source documents → hallucination → fix prompt and re-test
+
+---
 
 ### Server Management (Full-Stack Projects)
 

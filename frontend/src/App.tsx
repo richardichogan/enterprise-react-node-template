@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 import './App.scss'
 import { 
   Tabs, 
@@ -13,7 +14,7 @@ import {
   SelectItem,
   InlineNotification
 } from '@carbon/react'
-import { Download, Upload, Trash } from '@carbon/icons-react'
+import { TrashCan } from '@carbon/icons-react'
 
 interface Project {
   id: string
@@ -37,18 +38,40 @@ interface UploadedDocument {
 interface RFIResponse {
   answer: string
   usedDocumentCollection: boolean
+  usedDocuments?: string[]
   collectionName?: string
   model?: string
   tokensUsed?: number
+  characterLimitExceeded?: boolean
+  characterCount?: number
+  characterLimit?: number
+  evaluation?: {
+    framework: string
+    totalDimensions: number
+    dimensions: Array<{
+      name: string
+      score: number
+      evidence: string[]
+      reasoning: string
+      gaps: string[]
+    }>
+    totalScore: number
+    verdict: string
+    gapAnalysis: string[]
+    rewriteSuggestions: string[]
+    complianceNotes: string
+  }
 }
 
 const ANALYSTS = ['Gartner', 'Forrester', 'IDC', 'Magic Quadrant', 'Custom']
-const ANSWER_TYPES = ['Single', 'Categorised']
+const ANSWER_TYPES = ['Single', 'Multi-Section']
 
 export default function App() {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
   const [loading, setLoading] = useState(false)
+  const [loadingStage, setLoadingStage] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [availableDocuments, setAvailableDocuments] = useState<UploadedDocument[]>([])
   
   // Projects state
   const [projects, setProjects] = useState<Project[]>([])
@@ -68,26 +91,60 @@ export default function App() {
   const [characterLimit, setCharacterLimit] = useState<number | ''>('')
   const [answerType, setAnswerType] = useState('Single')
   const [generatedResponse, setGeneratedResponse] = useState<RFIResponse | null>(null)
+  
+  // Score Analyzer fields
+  const [evaluationResponse, setEvaluationResponse] = useState('')
+  const [evaluationResult, setEvaluationResult] = useState<any>(null)
+
+  // Presentation state
+  const [presentationTitle, setPresentationTitle] = useState('')
+  const [presentationSubtitle, setPresentationSubtitle] = useState('')
+  const [presentationMode, setPresentationMode] = useState<'blank' | 'briefing'>('blank')
+  
+  // Briefing Deck state
+  const [briefingPack, setBriefingPack] = useState('')
+  const [briefingInstructions, setBriefingInstructions] = useState('')
+  const [briefingResponse, setBriefingResponse] = useState('')
+  const [ibmSupportingMaterials, setIbmSupportingMaterials] = useState<string[]>([])  // Multi-select for example decks/slides
+  const [briefingAnalystFirm, setBriefingAnalystFirm] = useState('Gartner')
+  const [briefingModel, setBriefingModel] = useState('global/gpt-4o')
+  const [deckStructure, setDeckStructure] = useState<any>(null)
+  const [generatingDeck, setGeneratingDeck] = useState(false)
 
   // Upload state
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState('')
   const [projectDocuments, setProjectDocuments] = useState<UploadedDocument[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   // Load projects from localStorage on mount
   useEffect(() => {
     const savedProjects = localStorage.getItem('rfi_projects')
-    if (savedProjects) {
-      try {
-        const parsed = JSON.parse(savedProjects)
-        setProjects(parsed)
-        if (parsed.length > 0) {
-          setCurrentProjectId(parsed[0].id)
-        }
-      } catch (e) {
-        console.error('Failed to load projects:', e)
+    if (!savedProjects) return
+
+    try {
+      const parsed = JSON.parse(savedProjects)
+      if (!Array.isArray(parsed)) {
+        // Clear invalid data to avoid runtime errors
+        localStorage.removeItem('rfi_projects')
+        return
       }
+
+      // Ensure documents field exists
+      const normalised: Project[] = parsed.map((p: Project) => ({
+        ...p,
+        documents: Array.isArray(p.documents) ? p.documents : []
+      }))
+
+      setProjects(normalised)
+      if (normalised.length > 0) {
+        setCurrentProjectId(normalised[0].id)
+      }
+    } catch (e) {
+      console.error('Failed to load projects:', e)
+      localStorage.removeItem('rfi_projects')
     }
   }, [])
 
@@ -103,9 +160,49 @@ export default function App() {
     }
   }, [currentProjectId, projects])
 
-  // Save projects to localStorage
-  const saveProjects = (projectsToSave: Project[]) => {
+  // Load available documents from API (pre-uploaded)
+  useEffect(() => {
+    const loadDocuments = async () => {
+      try {
+        const resp = await fetch(`${apiUrl}/api/documents`)
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const data = await resp.json()
+        if (Array.isArray(data.documents)) {
+          const docs: UploadedDocument[] = data.documents.map((doc: any) => ({
+            name: doc.blobName || doc.name,
+            size: doc.size ?? 0,
+            uploadDate: doc.uploadDate || doc.createdOn || new Date().toISOString(),
+            url: doc.url || doc.blobUrl || ''
+          }))
+          setAvailableDocuments(docs)
+        }
+      } catch (err) {
+        console.warn('Failed to load available documents', err)
+      }
+    }
+
+    loadDocuments()
+  }, [apiUrl])
+
+  // Persist projects to server JSON (and localStorage fallback)
+  const persistProjects = async (projectsToSave: Project[], nextCurrentId?: string | null) => {
+    setProjects(projectsToSave)
+    if (nextCurrentId !== undefined) {
+      setCurrentProjectId(nextCurrentId)
+    }
+
     localStorage.setItem('rfi_projects', JSON.stringify(projectsToSave))
+
+    try {
+      await fetch(`${apiUrl}/api/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: projectsToSave })
+      })
+    } catch (err) {
+      console.error('Failed to save projects to server', err)
+      setError('Failed to save projects to server. Changes may not persist.')
+    }
   }
 
   // Create new project
@@ -128,9 +225,7 @@ export default function App() {
     }
 
     const updated = [...projects, newProject]
-    setProjects(updated)
-    saveProjects(updated)
-    setCurrentProjectId(newProject.id)
+    persistProjects(updated, newProject.id)
     setNewProjectName('')
     setShowNewProject(false)
     setError(null)
@@ -145,19 +240,57 @@ export default function App() {
         ? { ...p, ...updates, updatedAt: new Date().toISOString() }
         : p
     )
-    setProjects(updated)
-    saveProjects(updated)
+    persistProjects(updated)
   }
 
   // Save project setup
-  const saveProjectSetup = () => {
-    updateCurrentProject({
-      analyst,
-      category,
-      technologyFocus,
-      partner
-    })
+  const saveProjectSetup = async () => {
+    if (!currentProjectId) return
+
+    setIsSaving(true)
     setError(null)
+    setSaveSuccess(false)
+
+    try {
+      const updated = projects.map(p =>
+        p.id === currentProjectId
+          ? {
+              ...p,
+              analyst,
+              category,
+              technologyFocus,
+              partner,
+              updatedAt: new Date().toISOString()
+            }
+          : p
+      )
+
+      console.log('📝 Saving project setup:', { analyst, category, technologyFocus, partner })
+      console.log('📦 Updated projects:', JSON.stringify(updated, null, 2))
+
+      setProjects(updated)
+      localStorage.setItem('rfi_projects', JSON.stringify(updated))
+
+      const resp = await fetch(`${apiUrl}/api/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: updated })
+      })
+
+      console.log('✅ Server response:', resp.status)
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+
+      const data = await resp.json()
+      console.log('📨 Server saved:', data)
+
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (err) {
+      console.error('❌ Failed to save project setup:', err)
+      setError(`Failed to save project: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // Upload document
@@ -247,6 +380,21 @@ export default function App() {
     updateCurrentProject({ documents: updated })
   }
 
+  const toggleExistingDocument = (doc: UploadedDocument, attach: boolean) => {
+    if (!currentProjectId) return
+
+    const exists = projectDocuments.some(d => d.name === doc.name)
+    if (attach && !exists) {
+      const updated = [...projectDocuments, doc]
+      setProjectDocuments(updated)
+      updateCurrentProject({ documents: updated })
+    } else if (!attach && exists) {
+      const updated = projectDocuments.filter(d => d.name !== doc.name)
+      setProjectDocuments(updated)
+      updateCurrentProject({ documents: updated })
+    }
+  }
+
   // Generate RFI response
   const generateResponse = async () => {
     if (!question.trim()) {
@@ -255,8 +403,14 @@ export default function App() {
     }
 
     setLoading(true)
+    setLoadingStage('📥 [1/6] Retrieving documents from project...')
     setError(null)
     try {
+      setLoadingStage('📚 [2/6] Extracting text from documents...')
+      setLoadingStage('🔍 [3/6] Scoring relevance of chunks...')
+      setLoadingStage('⚙️  [4/6] Building system prompt...')
+      setLoadingStage('🤖 [5/6] Generating response with AI...')
+      
       const response = await fetch(`${apiUrl}/api/rfi/generate-response`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -270,14 +424,145 @@ export default function App() {
           characterLimit: characterLimit ? parseInt(characterLimit.toString()) : null,
           answerType,
           useDocumentCollection: true,
-          documentCount: projectDocuments.length
+          documents: availableDocuments.map(doc => doc.name)  // Send ALL documents for RAG search
         })
       })
       if (!response.ok) throw new Error(`API error: ${response.statusText}`)
+      
+      setLoadingStage('✨ [6/6] Finalizing response...')
       const data = await response.json()
       setGeneratedResponse(data)
+      setLoadingStage('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
+      setLoadingStage('')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Generate Briefing Deck Structure
+  const generateBriefingDeck = async () => {
+    if (!briefingPack || !briefingInstructions) {
+      setError('Briefing pack and instructions are required')
+      return
+    }
+
+    setGeneratingDeck(true)
+    setError(null)
+    setLoadingStage('Step 1/4: Parsing briefing pack structure...')
+
+    try {
+      const response = await fetch(`${apiUrl}/api/presentations/generate-briefing-deck-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          briefingPack,
+          briefingInstructions,
+          vendorResponse: briefingResponse,
+          analystFirm: briefingAnalystFirm,
+          model: briefingModel
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate deck: ${response.statusText}`)
+      }
+
+      // Handle Server-Sent Events stream
+      if (!response.body) {
+        throw new Error('No response body')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let result = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.error) {
+                throw new Error(data.error)
+              }
+              if (data.complete) {
+                result = data
+              } else if (data.message) {
+                setLoadingStage(data.message)
+              }
+            } catch (parseErr) {
+              console.error('Failed to parse SSE message:', parseErr)
+            }
+          }
+        }
+      }
+
+      if (result) {
+        setDeckStructure(result.deck)
+        setLoadingStage('✅ Deck structure generated successfully!')
+        setTimeout(() => setLoadingStage(''), 3000)
+      }
+    } catch (err) {
+      console.error('Deck generation error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to generate deck structure')
+    } finally {
+      setGeneratingDeck(false)
+    }
+  }
+
+  // Download PowerPoint from Deck Structure
+  const downloadPresentation = async () => {
+    if (!deckStructure) return
+
+    setLoading(true)
+    setError(null)
+    setLoadingStage('Creating PowerPoint file...')
+
+    try {
+      const response = await fetch(`${apiUrl}/api/presentations/create-from-deck`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deckStructure,
+          filename: presentationTitle || 'Briefing_Deck'
+        })
+      })
+
+      if (!response.ok) {
+        // Try to get detailed error from JSON response
+        try {
+          const errorData = await response.json()
+          throw new Error(errorData.details || errorData.error || `Failed to create presentation: ${response.statusText}`)
+        } catch (jsonErr) {
+          throw new Error(`Failed to create presentation: ${response.statusText}`)
+        }
+      }
+
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${(presentationTitle || 'Briefing_Deck').replace(/[^a-z0-9]/gi, '_')}.pptx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      setLoadingStage('✅ Presentation downloaded successfully!')
+      setTimeout(() => setLoadingStage(''), 3000)
+    } catch (err) {
+      console.error('Presentation error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create presentation')
     } finally {
       setLoading(false)
     }
@@ -374,14 +659,11 @@ export default function App() {
                             size="sm"
                             onClick={() => {
                               const updated = projects.filter(x => x.id !== p.id)
-                              setProjects(updated)
-                              saveProjects(updated)
-                              if (p.id === currentProjectId && updated.length > 0) {
-                                setCurrentProjectId(updated[0].id)
-                              }
+                              const nextId = p.id === currentProjectId && updated.length > 0 ? updated[0].id : null
+                              persistProjects(updated, nextId)
                             }}
                           >
-                            <Trash size={16} />
+                            <TrashCan size={16} />
                           </Button>
                         </div>
                       </div>
@@ -435,11 +717,44 @@ export default function App() {
                       />
                     </div>
 
-                    <Button onClick={saveProjectSetup} style={{ marginBottom: '2rem' }}>
-                      Save Project Setup
-                    </Button>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '2rem' }}>
+                      <Button 
+                        onClick={saveProjectSetup} 
+                        disabled={isSaving}
+                      >
+                        {isSaving ? 'Saving...' : 'Save Project Setup'}
+                      </Button>
+                      {saveSuccess && (
+                        <small style={{ color: '#24a148', fontWeight: 'bold' }}>✓ Saved successfully</small>
+                      )}
+                    </div>
 
                     <h3>Project Documents</h3>
+                    {availableDocuments.length > 0 && (
+                      <div className="existing-docs">
+                        <h4 style={{ margin: '0 0 0.5rem 0' }}>Attach existing documents</h4>
+                        <div className="documents-list" style={{ gap: '0.5rem' }}>
+                          {availableDocuments.map(doc => {
+                            const checked = projectDocuments.some(d => d.name === doc.name)
+                            return (
+                              <label key={doc.name} className="document-item" style={{ alignItems: 'flex-start', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(e) => toggleExistingDocument(doc, e.target.checked)}
+                                  style={{ marginRight: '0.75rem', marginTop: '0.2rem' }}
+                                />
+                                <div className="doc-info">
+                                  <strong>{doc.name}</strong>
+                                  <small>{(doc.size / (1024 * 1024)).toFixed(2)} MB | {new Date(doc.uploadDate).toLocaleDateString()}</small>
+                                </div>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="upload-section">
                       <input
                         type="file"
@@ -475,7 +790,7 @@ export default function App() {
                               size="sm"
                               onClick={() => deleteDocument(doc.name)}
                             >
-                              <Trash size={16} />
+                              <TrashCan size={16} />
                             </Button>
                           </div>
                         ))}
@@ -547,13 +862,42 @@ export default function App() {
                       {loading ? 'Generating...' : 'Generate Response'}
                     </Button>
 
+                    {loading && loadingStage && (
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        backgroundColor: '#e3f2fd',
+                        border: '1px solid #90caf9',
+                        borderRadius: '4px',
+                        color: '#1976d2',
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        animation: 'pulse 1.5s ease-in-out infinite'
+                      }}>
+                        {loadingStage}
+                      </div>
+                    )}
+
                     {generatedResponse && (
                       <div className="result-box">
                         <h3>Generated Response</h3>
-                        <p>{generatedResponse.answer}</p>
+                        {generatedResponse.usedDocuments && generatedResponse.usedDocuments.length > 0 && (
+                          <div className="used-documents">
+                            <strong>📄 Documents Used:</strong> {generatedResponse.usedDocuments.join(', ')}
+                          </div>
+                        )}
+                        <div className="markdown-content">
+                          <ReactMarkdown>{generatedResponse.answer}</ReactMarkdown>
+                        </div>
                         {generatedResponse.model && (
                           <div className="metadata">
                             <small>Model: {generatedResponse.model} | Tokens: {generatedResponse.tokensUsed}</small>
+                            {generatedResponse.characterLimitExceeded && (
+                              <small> | ⚠️ Character limit exceeded - response truncated</small>
+                            )}
+                            {generatedResponse.characterLimit && (
+                              <small> | {generatedResponse.characterCount}/{generatedResponse.characterLimit} characters</small>
+                            )}
                           </div>
                         )}
                       </div>
@@ -567,15 +911,693 @@ export default function App() {
             <TabPanel>
               <div className="panel-content">
                 <h2>Analyze Response Quality</h2>
-                <p>Coming soon...</p>
+                
+                <div className="form-section">
+                  <label>Analyst Framework</label>
+                  <Select
+                    id="evaluation-analyst"
+                    labelText=""
+                    value={analyst || 'Gartner'}
+                    onChange={(e) => setAnalyst(e.target.value)}
+                  >
+                    <SelectItem value="Gartner" text="Gartner Magic Quadrant" />
+                    <SelectItem value="Forrester" text="Forrester Wave" />
+                    <SelectItem value="IDC" text="IDC MarketScape" />
+                  </Select>
+                </div>
+
+                <div className="form-section">
+                  <label htmlFor="analyst-question">Analyst Question</label>
+                  <TextArea
+                    id="analyst-question"
+                    placeholder="Paste the exact analyst question here..."
+                    rows={4}
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-section">
+                  <label htmlFor="vendor-response">Your Response to Evaluate</label>
+                  <TextArea
+                    id="vendor-response"
+                    placeholder="Paste your vendor response here..."
+                    rows={12}
+                    value={evaluationResponse}
+                    onChange={(e) => setEvaluationResponse(e.target.value)}
+                  />
+                </div>
+
+                <Button
+                  kind="primary"
+                  onClick={async () => {
+                    if (!question || !evaluationResponse) {
+                      setError('Both question and response are required for evaluation')
+                      return
+                    }
+
+                    setLoading(true)
+                    setError(null)
+                    setLoadingStage('Evaluating response against analyst criteria...')
+
+                    try {
+                      const response = await fetch(`${apiUrl}/api/rfi/evaluate-analyst`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          question,
+                          response: evaluationResponse,
+                          analyst: analyst || 'Gartner'
+                        })
+                      })
+
+                      if (!response.ok) {
+                        throw new Error(`Evaluation failed: ${response.statusText}`)
+                      }
+
+                      const data = await response.json()
+                      setEvaluationResult(data)
+                    } catch (err) {
+                      console.error('Evaluation error:', err)
+                      setError(err instanceof Error ? err.message : 'Failed to evaluate response')
+                    } finally {
+                      setLoading(false)
+                      setLoadingStage('')
+                    }
+                  }}
+                  disabled={loading || !question || !evaluationResponse}
+                >
+                  {loading ? 'Evaluating...' : 'Evaluate Response'}
+                </Button>
+
+                {loadingStage && (
+                  <div className="progress-box">
+                    <p>{loadingStage}</p>
+                  </div>
+                )}
+
+                {error && (
+                  <InlineNotification
+                    kind="error"
+                    title="Error"
+                    subtitle={error}
+                    onCloseButtonClick={() => setError(null)}
+                  />
+                )}
+
+                {evaluationResult?.evaluation && (
+                  <div className="evaluation-results">
+                    <h3>Evaluation Results</h3>
+                    
+                    <div className="score-summary">
+                      <h4>{evaluationResult.evaluation.framework}</h4>
+                      <div className="total-score">
+                        <span className="score-value">{evaluationResult.evaluation.totalScore}</span>
+                        <span className="score-max">/ {evaluationResult.evaluation.totalDimensions * 5}</span>
+                      </div>
+                    </div>
+
+                    <div className="verdict">
+                      <h4>Overall Verdict</h4>
+                      <p>{evaluationResult.evaluation.verdict}</p>
+                    </div>
+
+                    <div className="dimensions">
+                      <h4>Dimension Scores</h4>
+                      {evaluationResult.evaluation.dimensions.map((dim: any, idx: number) => (
+                        <div key={idx} className="dimension-card">
+                          <div className="dimension-header">
+                            <h5>{dim.name}</h5>
+                            <span className="dimension-score">{dim.score}/5</span>
+                          </div>
+                          <p className="dimension-reasoning">{dim.reasoning}</p>
+                          
+                          {dim.evidence && dim.evidence.length > 0 && (
+                            <div className="dimension-evidence">
+                              <strong>Evidence:</strong>
+                              <ul>
+                                {dim.evidence.map((quote: string, qIdx: number) => (
+                                  <li key={qIdx}>"{quote}"</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {dim.gaps && dim.gaps.length > 0 && (
+                            <div className="dimension-gaps">
+                              <strong>Gaps:</strong>
+                              <ul>
+                                {dim.gaps.map((gap: string, gIdx: number) => (
+                                  <li key={gIdx}>{gap}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {evaluationResult.evaluation.gapAnalysis && evaluationResult.evaluation.gapAnalysis.length > 0 && (
+                      <div className="gap-analysis">
+                        <h4>Gap Analysis</h4>
+                        <ul>
+                          {evaluationResult.evaluation.gapAnalysis.map((gap: string, idx: number) => (
+                            <li key={idx}>{gap}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {evaluationResult.evaluation.rewriteSuggestions && evaluationResult.evaluation.rewriteSuggestions.length > 0 && (
+                      <div className="rewrite-suggestions">
+                        <h4>Rewrite Suggestions</h4>
+                        <ul>
+                          {evaluationResult.evaluation.rewriteSuggestions.map((suggestion: string, idx: number) => (
+                            <li key={idx}>{suggestion}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {evaluationResult.evaluation.complianceNotes && (
+                      <div className="compliance-notes">
+                        <h4>Compliance Notes</h4>
+                        <p>{evaluationResult.evaluation.complianceNotes}</p>
+                      </div>
+                    )}
+
+                    <div className="evaluation-meta">
+                      <small>Model: {evaluationResult.model} | Tokens: {evaluationResult.tokensUsed?.toLocaleString()}</small>
+                    </div>
+                  </div>
+                )}
               </div>
             </TabPanel>
 
             {/* Presentation Outline Tab */}
             <TabPanel>
               <div className="panel-content">
-                <h2>Create Presentation Outline</h2>
-                <p>Coming soon...</p>
+                <h2>Create PowerPoint Presentation</h2>
+                
+                {/* Mode Selector */}
+                <div className="presentation-mode-selector">
+                  <Button
+                    kind={presentationMode === 'blank' ? 'primary' : 'tertiary'}
+                    onClick={() => setPresentationMode('blank')}
+                  >
+                    Blank Presentation
+                  </Button>
+                  <Button
+                    kind={presentationMode === 'briefing' ? 'primary' : 'tertiary'}
+                    onClick={() => setPresentationMode('briefing')}
+                  >
+                    Briefing Deck Builder
+                  </Button>
+                </div>
+
+                {/* Blank Presentation Mode */}
+                {presentationMode === 'blank' && (
+                  <>
+                    <div className="form-section">
+                      <label htmlFor="pres-title">Presentation Title</label>
+                      <TextInput
+                        id="pres-title"
+                        placeholder="e.g., IBM Cloud ERP Services Overview"
+                        value={presentationTitle}
+                        onChange={(e) => setPresentationTitle(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-section">
+                      <label htmlFor="pres-subtitle">Subtitle (Optional)</label>
+                      <TextInput
+                        id="pres-subtitle"
+                        placeholder="e.g., Gartner Magic Quadrant Response"
+                        value={presentationSubtitle}
+                        onChange={(e) => setPresentationSubtitle(e.target.value)}
+                      />
+                    </div>
+
+                    <Button
+                      kind="primary"
+                      onClick={async () => {
+                        if (!presentationTitle) {
+                          setError('Title is required')
+                          return
+                        }
+
+                        setLoading(true)
+                        setError(null)
+                        setLoadingStage('Creating PowerPoint presentation...')
+
+                        try {
+                          const response = await fetch(`${apiUrl}/api/presentations/create-blank`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              title: presentationTitle,
+                              subtitle: presentationSubtitle || undefined
+                            })
+                          })
+
+                          if (!response.ok) {
+                            throw new Error(`Failed to create presentation: ${response.statusText}`)
+                          }
+
+                          // Download the file
+                          const blob = await response.blob()
+                          const url = window.URL.createObjectURL(blob)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = `${presentationTitle.replace(/[^a-z0-9]/gi, '_')}.pptx`
+                          document.body.appendChild(a)
+                          a.click()
+                          document.body.removeChild(a)
+                          window.URL.revokeObjectURL(url)
+
+                          setLoadingStage('✅ Presentation downloaded successfully!')
+                          setTimeout(() => setLoadingStage(''), 3000)
+                        } catch (err) {
+                          console.error('Presentation error:', err)
+                          setError(err instanceof Error ? err.message : 'Failed to create presentation')
+                        } finally {
+                          setLoading(false)
+                        }
+                      }}
+                      disabled={loading || !presentationTitle}
+                    >
+                      {loading ? 'Creating...' : 'Create Blank Presentation'}
+                    </Button>
+                  </>
+                )}
+
+                {/* Briefing Deck Builder Mode */}
+                {presentationMode === 'briefing' && (
+                  <>
+                    {/* Configuration Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <Select
+                        labelText="Analyst Firm"
+                        value={briefingAnalystFirm}
+                        onChange={(e) => setBriefingAnalystFirm(e.target.value)}
+                      >
+                        <SelectItem value="Gartner" text="Gartner" />
+                        <SelectItem value="Forrester" text="Forrester" />
+                        <SelectItem value="IDC" text="IDC" />
+                        <SelectItem value="Everest Group" text="Everest Group" />
+                      </Select>
+
+                      <Select
+                        labelText="AI Model"
+                        value={briefingModel}
+                        onChange={(e) => setBriefingModel(e.target.value)}
+                      >
+                        <SelectItem value="global/gpt-4o" text="GPT-4o (Recommended)" />
+                        <SelectItem value="gpt-4" text="GPT-4" />
+                        <SelectItem value="global/claude-3-7-sonnet" text="Claude 3.7 Sonnet" />
+                        <SelectItem value="global/ibm/granite-3-8b-instruct" text="Granite 3 8B" />
+                      </Select>
+
+                      <TextInput
+                        labelText="Presentation Filename"
+                        placeholder="e.g., Gartner_Briefing"
+                        value={presentationTitle}
+                        onChange={(e) => setPresentationTitle(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Input Fields */}
+                    <div className="form-section">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <label>Briefing Structure Document (presentation outline)</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <Select
+                            id="briefing-pack-select"
+                            labelText=""
+                            defaultValue=""
+                            onChange={(e) => {
+                              console.log('Selected:', e.target.value, 'Available docs:', availableDocuments);
+                              const doc = availableDocuments.find(d => d.name === e.target.value)
+                              if (doc) {
+                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
+                                  .then(r => {
+                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                                    return r.text();
+                                  })
+                                  .then(text => setBriefingPack(text))
+                                  .catch(err => {
+                                    console.error('Error loading briefing pack:', err);
+                                    alert(`Failed to load document: ${err.message}`);
+                                  })
+                              }
+                            }}
+                            size="sm"
+                            style={{ width: '200px' }}
+                          >
+                            <SelectItem value="" text="Load from docs..." />
+                            {availableDocuments.map(doc => (
+                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
+                      <TextArea
+                        placeholder="Document outlining presentation structure (agenda, timings, slide titles, requirements, constraints)..."
+                        rows={8}
+                        value={briefingPack}
+                        onChange={(e) => setBriefingPack(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-section">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <label>Supporting Analyst Information (market definitions, evaluation criteria)</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <Select
+                            id="briefing-instructions-select"
+                            labelText=""
+                            defaultValue=""
+                            onChange={(e) => {
+                              const doc = availableDocuments.find(d => d.name === e.target.value)
+                              if (doc) {
+                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
+                                  .then(r => {
+                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                                    return r.text();
+                                  })
+                                  .then(text => setBriefingInstructions(text))
+                                  .catch(err => {
+                                    console.error('Error loading briefing instructions:', err);
+                                    alert(`Failed to load document: ${err.message}`);
+                                  })
+                              }
+                            }}
+                            size="sm"
+                            style={{ width: '200px' }}
+                          >
+                            <SelectItem value="" text="Load from docs..." />
+                            {availableDocuments.map(doc => (
+                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
+                      <TextArea
+                        placeholder="Supporting information from analyst (market definitions, evaluation criteria, guidelines, requirements)..."
+                        rows={4}
+                        value={briefingInstructions}
+                        onChange={(e) => setBriefingInstructions(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-section">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <label>IBM RFI Response</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          {generatedResponse?.answer && (
+                            <Button
+                              kind="tertiary"
+                              size="sm"
+                              onClick={() => setBriefingResponse(generatedResponse.answer)}
+                            >
+                              Use Generated Answer
+                            </Button>
+                          )}
+                          <Select
+                            id="briefing-response-select"
+                            labelText=""
+                            defaultValue=""
+                            onChange={(e) => {
+                              const doc = availableDocuments.find(d => d.name === e.target.value)
+                              if (doc) {
+                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
+                                  .then(r => {
+                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                                    return r.text();
+                                  })
+                                  .then(text => setBriefingResponse(text))
+                                  .catch(err => {
+                                    console.error('Error loading vendor response:', err);
+                                    alert(`Failed to load document: ${err.message}`);
+                                  })
+                              }
+                            }}
+                            size="sm"
+                            style={{ width: '200px' }}
+                          >
+                            <SelectItem value="" text="Load from docs..." />
+                            {availableDocuments.map(doc => (
+                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
+                      <TextArea
+                        placeholder="IBM's written response to the RFI/questionnaire (will be used to populate slide content)..."
+                        rows={8}
+                        value={briefingResponse}
+                        onChange={(e) => setBriefingResponse(e.target.value)}
+                      />
+                    </div>
+
+                    {/* IBM Supporting Materials - Multi-select */}
+                    <div className="form-section">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <label>IBM Supporting Materials (example decks, slides) - Optional</label>
+                      </div>
+                      <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                        {availableDocuments.length === 0 && <p style={{ color: '#666', fontSize: '0.875rem' }}>No documents available</p>}
+                        {availableDocuments.map(doc => (
+                          <div key={doc.name} style={{ padding: '0.25rem 0' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={ibmSupportingMaterials.includes(doc.name)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setIbmSupportingMaterials([...ibmSupportingMaterials, doc.name])
+                                  } else {
+                                    setIbmSupportingMaterials(ibmSupportingMaterials.filter(name => name !== doc.name))
+                                  }
+                                }}
+                                style={{ marginRight: '0.5rem' }}
+                              />
+                              <span style={{ fontSize: '0.875rem' }}>{doc.name}</span>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {ibmSupportingMaterials.length > 0 && (
+                        <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
+                          {ibmSupportingMaterials.length} document(s) selected
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Generate Button */}
+                    <Button
+                      kind="primary"
+                      onClick={generateBriefingDeck}
+                      disabled={generatingDeck || !briefingPack || !briefingInstructions}
+                    >
+                      {generatingDeck ? 'Generating...' : 'Generate Deck Structure'}
+                    </Button>
+
+                    {/* Status Bar */}
+                    {(loadingStage || generatingDeck) && (
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        backgroundColor: generatingDeck ? '#e8f4f8' : '#e6ffed',
+                        borderLeft: `4px solid ${generatingDeck ? '#0043ce' : '#24a148'}`,
+                        borderRadius: '4px',
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem'
+                      }}>
+                        {loadingStage ? (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {generatingDeck && (
+                                <span style={{
+                                  display: 'inline-block',
+                                  width: '0.75rem',
+                                  height: '0.75rem',
+                                  backgroundColor: '#0043ce',
+                                  borderRadius: '50%',
+                                  animation: 'pulse 1.5s infinite'
+                                }} />
+                              )}
+                              <span>{loadingStage}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <span>Initializing...</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Deck Structure Results */}
+                    {deckStructure && (
+                      <div className="deck-results">
+                        <h3>Generated Deck Structure</h3>
+
+                        {/* Extracted Structure */}
+                        {deckStructure.extractedStructure && (
+                          <div className="extracted-structure">
+                            <h4>📋 Extracted Briefing Pack Structure</h4>
+                            <div className="structure-details">
+                              {deckStructure.extractedStructure.agendaTimings && (
+                                <div>
+                                  <strong>Agenda Timings:</strong>
+                                  <ul>
+                                    {deckStructure.extractedStructure.agendaTimings.map((item: any, idx: number) => (
+                                      <li key={idx}>{item.time}: {item.topic}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {deckStructure.extractedStructure.constraints && (
+                                <div>
+                                  <strong>Constraints:</strong>
+                                  <ul>
+                                    {Object.entries(deckStructure.extractedStructure.constraints).map(([key, value]) => (
+                                      <li key={key}>{key}: {String(value)}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Slides Preview */}
+                        <div className="slides-preview">
+                          <h4>📊 Slides ({deckStructure.slides?.length || 0})</h4>
+                          {deckStructure.slides?.map((slide: any, idx: number) => (
+                            <div key={idx} className="slide-card">
+                              <div className="slide-header">
+                                <strong>Slide {slide.number}: {slide.title}</strong>
+                                {slide.complianceFlags && slide.complianceFlags.length > 0 && (
+                                  <span className="compliance-warning">⚠️ {slide.complianceFlags.length} compliance flags</span>
+                                )}
+                              </div>
+                              <p className="slide-purpose"><em>{slide.purpose}</em></p>
+                              {slide.content && slide.content.length > 0 && (
+                                <ul className="slide-content">
+                                  {slide.content.map((bullet: string, bidx: number) => (
+                                    <li key={bidx}>{bullet}</li>
+                                  ))}
+                                </ul>
+                              )}
+                              {slide.evidenceCitations && slide.evidenceCitations.length > 0 && (
+                                <div className="evidence-citations">
+                                  <strong>Evidence:</strong> {slide.evidenceCitations.join('; ')}
+                                </div>
+                              )}
+                              {slide.complianceFlags && slide.complianceFlags.length > 0 && (
+                                <div className="compliance-flags">
+                                  <strong>⚠️ Compliance Issues:</strong>
+                                  <ul>
+                                    {slide.complianceFlags.map((flag: string, fidx: number) => (
+                                      <li key={fidx}>{flag}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {slide.speakerNotes && (
+                                <details className="speaker-notes">
+                                  <summary>Speaker Notes</summary>
+                                  <p>{slide.speakerNotes}</p>
+                                </details>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Traceability Matrix */}
+                        {deckStructure.traceabilityMatrix && deckStructure.traceabilityMatrix.length > 0 && (
+                          <div className="traceability-matrix">
+                            <h4>🔗 Traceability Matrix</h4>
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Slide</th>
+                                  <th>Pack Requirement</th>
+                                  <th>Response Source</th>
+                                  <th>Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {deckStructure.traceabilityMatrix.map((item: any, idx: number) => (
+                                  <tr key={idx}>
+                                    <td>{item.slideNumber}</td>
+                                    <td>{item.packRequirement}</td>
+                                    <td>{item.responseSource}</td>
+                                    <td className={`status-${item.status}`}>{item.status}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Gap List */}
+                        {deckStructure.gapList && deckStructure.gapList.length > 0 && (
+                          <div className="gap-list">
+                            <h4>⚠️ Identified Gaps ({deckStructure.gapList.length})</h4>
+                            <ul>
+                              {deckStructure.gapList.map((gap: any, idx: number) => (
+                                <li key={idx}>
+                                  <strong>{gap.requirement}</strong>: {gap.description}
+                                  {gap.mitigation && <div className="mitigation">Mitigation: {gap.mitigation}</div>}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Q&A Bank */}
+                        {deckStructure.qaBank && deckStructure.qaBank.length > 0 && (
+                          <div className="qa-bank">
+                            <h4>💬 Q&A Bank ({deckStructure.qaBank.length})</h4>
+                            {deckStructure.qaBank.map((qa: any, idx: number) => (
+                              <details key={idx} className="qa-item">
+                                <summary><strong>Q{idx + 1}:</strong> {qa.question}</summary>
+                                <p><strong>A:</strong> {qa.answer}</p>
+                                {qa.evidenceSource && <p className="evidence-source"><em>Source: {qa.evidenceSource}</em></p>}
+                              </details>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Download Button */}
+                        <Button
+                          kind="primary"
+                          onClick={downloadPresentation}
+                          disabled={loading}
+                          style={{ marginTop: '1.5rem' }}
+                        >
+                          {loading ? 'Creating PowerPoint...' : 'Download PowerPoint'}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {loadingStage && (
+                  <div className="progress-box">
+                    <p>{loadingStage}</p>
+                  </div>
+                )}
+
+                {error && (
+                  <InlineNotification
+                    kind="error"
+                    title="Error"
+                    subtitle={error}
+                    onCloseButtonClick={() => setError(null)}
+                  />
+                )}
               </div>
             </TabPanel>
           </TabPanels>

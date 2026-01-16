@@ -215,3 +215,107 @@ onMouseEnter={(e) => {
 **Implemented**: 2025-12-10
 **Status**: Code complete, needs testing with real tags
 
+---
+
+## Multi-Pass AI Generation for Briefing Decks
+
+**Issue**: Single-pass briefing deck generation hit token limits causing truncated responses and JSON parse errors.
+
+**Decision**: Implement multi-pass approach
+1. **Step 1**: Parse briefing pack structure (sections, timings, slide requirements)
+2. **Step 2**: Generate slides section-by-section (batched by section to maintain context)
+3. **Step 3**: Generate Q&A bank from briefing instructions
+4. **Step 4**: Assemble final deck with traceability matrix and gap analysis
+
+**Benefits**:
+- No token limit issues (each call is focused and small)
+- Better content quality (AI sees exact requirements per section)
+- Can retry individual sections on failure
+- Maintains context within sections
+
+**Implementation**:
+- Main function: `generateBriefingDeck()` coordinates 4-step flow
+- Helper functions: `parseBriefingStructure()`, `generateSectionSlides()`, `generateQABank()`
+- Each helper makes focused ICA API call with max_tokens 4000-6000
+- Full documents sent without truncation (per user requirement)
+
+**Files Affected**:
+- `server/services/briefingDeckService.js` - Complete rewrite from single-pass to multi-pass
+- Deleted ~250 lines of old single-pass code
+- Added 3 new helper functions
+
+**Date Discovered**: 2026-01-12
+**Implemented**: 2026-01-14
+**Status**: Implemented and tested
+
+---
+
+## AI Hallucination Prevention
+
+**Issue**: AI was generating plausible-sounding compliance flags ("Do not include confidential information") that weren't in source documents.
+
+**Root Cause**: 
+- Prompt example showed: `"complianceFlags": ["Constraint from briefing pack"]`
+- AI interpreted this as "generate reasonable compliance rule"
+- AI's training data includes generic compliance rules, so it fabricated one
+
+**Decision**: Anti-hallucination prompt patterns
+1. **Explicit extraction only**: "ONLY include [field] if EXPLICITLY stated in documents. Do NOT make up or infer values."
+2. **Conservative defaults**: Use empty arrays `[]` or `"TBD"` when content missing
+3. **Citation requirements**: All metrics must have source citations
+4. **Neutral examples**: Use `[]` or `"TBD"` in prompt examples, not fabricated content
+
+**Implementation**:
+- Updated all prompt examples to use conservative defaults
+- Added explicit anti-hallucination instructions to system prompts
+- Created content validation guidelines with spot-check protocol
+- Created E2E test checklist requiring hallucination validation
+
+**Files Affected**:
+- `server/services/briefingDeckService.js` - Updated prompts in all 3 helper functions
+- `docs/testing/CONTENT-VALIDATION.md` - New validation guidelines
+- `docs/testing/E2E-TEST-CHECKLIST.md` - Added spot-check requirements
+
+**Lesson Learned**: 
+- Never trust AI output without validation against source documents
+- Structural correctness ≠ content accuracy
+- Always spot-check AI-generated content before claiming "it works"
+- Test end-to-end with real UI, not just backend unit tests
+
+**Date Discovered**: 2026-01-14
+**Fixed**: 2026-01-14
+**Incident Details**: Took 4 attempts to identify hallucination because testing focused on structural correctness, not content accuracy
+
+---
+
+## Testing Strategy: Content Validation Required
+
+**Issue**: Backend unit tests passed, UI displayed slides, but AI was hallucinating content. Structural testing missed accuracy problems.
+
+**Decision**: Three-level testing approach required
+1. **Level 1 - Backend Unit Tests**: Functions execute without errors, JSON structure valid
+2. **Level 2 - API Integration Tests**: Endpoints respond, contracts valid, error handling works
+3. **Level 3 - End-to-End UI Tests**: Complete user workflow + content accuracy spot-checks
+
+**Critical Principle**: AI-generated content MUST be validated for accuracy, not just structural correctness.
+
+**Mandatory Pre-Commit**:
+- Run backend unit tests
+- Restart servers
+- Complete E2E test checklist (5-10 minutes)
+- Spot-check for hallucinations (3 slide titles, 2 compliance flags, 1 Q&A answer)
+- Zero hallucinations required to pass
+
+**Implementation**:
+- `scripts/test-before-commit.ps1` - Automated test orchestration with manual UI verification
+- `docs/testing/TESTING-STRATEGY.md` - Testing philosophy and levels
+- `docs/testing/E2E-TEST-CHECKLIST.md` - Step-by-step manual verification
+- `docs/testing/CONTENT-VALIDATION.md` - Hallucination detection guidelines
+
+**Files Affected**:
+- New testing documentation folder: `docs/testing/`
+- Pre-commit script: `scripts/test-before-commit.ps1`
+
+**Date Established**: 2026-01-14
+**Trigger**: Multi-pass implementation appeared to work but had hidden hallucination issues
+**Status**: Mandatory for all AI-related code changes

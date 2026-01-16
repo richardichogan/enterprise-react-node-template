@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1768237184003",
+    "name": "Gartner MQ 2026: Cloud ERP Services",
+    "analyst": "Gartner",
+    "category": "MQ Cloud ERP",
+    "technologyFocus": "D365",
+    "partner": "Microsoft",
+    "documents": [
+      {
+        "name": "2026-01-12T13-23-46-101Z_Welcome Packet for Cloud ERP Services, 2026[66].pdf",
+        "size": 372632,
+        "uploadDate": "2026-01-12T13:23:47.000Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-12T13-23-46-101Z_Welcome Packet for Cloud ERP Services, 2026[66].pdf"
+      },
+      {
+        "name": "2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026  Kick Off.pptx",
+        "size": 1121191,
+        "uploadDate": "2026-01-12T13:21:25.000Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026  Kick Off.pptx"
+      },
+      {
+        "name": "2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf",
+        "size": 120897,
+        "uploadDate": "2026-01-12T13:21:32.000Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf"
+      }
+    ],
+    "createdAt": "2026-01-12T16:59:44.003Z",
+    "updatedAt": "2026-01-13T16:51:03.630Z"
+  }
+]

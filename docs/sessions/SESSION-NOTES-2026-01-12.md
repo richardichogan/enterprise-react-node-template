@@ -71,7 +71,8 @@ Successfully rebuilt RFI-Helper UI with Carbon Design System and got all 4 featu
 **Frontend** (`frontend/.env`):
 ```
 VITE_API_URL=http://localhost:3001
-```
+```ytgvfsz\c'| DFGHYUJIOP'#[]
+
 
 **Backend** (`server/.env`):
 ```
