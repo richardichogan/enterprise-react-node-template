@@ -497,32 +497,44 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     .map((d, idx) => `${idx + 1}. ${d.name} - ${d.description}`)
     .join('\n');
 
-  // REQUIREMENT-SPECIFIC SEARCH QUERIES BY SECTION
-  // Maps each section to multiple targeted searches that pull EXACT data from 2026 IBM RFI Response (Excel file)
-  // PRIORITY: Pull from current year "Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx" RFI Response first
-  // SECONDARY: Use 2026 briefing documents (Live Briefing Guidelines, Welcome Packet)
-  // DO NOT PRIORITIZE: 2024 submission deck (MQ - 2024 - Cloud ERP Services Submission) - that's last year's data
+  // COMPREHENSIVE SEARCH QUERIES BY SECTION
+  // Uses broader semantic queries to capture all relevant context across documents
+  // Retrieves 25 results per query (vs previous 10) for comprehensive coverage
+  // 2024 deck examples loaded separately as few-shot learning templates
   const sectionSearchQueries = {
     'Part One: Vision and Execution': [
-      'IBM RFI Cloud ERP practice overview vision strategy differentiation',
-      'IBM RFI Cloud ERP achievements growth metrics scale 2025 2026',
-      'IBM RFI acquisitions investments Cloud ERP services recent',
-      'IBM RFI Cloud ERP Centers of Excellence innovation hubs platforms'
+      // Broader query 1: Strategic positioning and scale
+      'IBM Cloud ERP practice vision strategy differentiation scale consultants countries global presence leadership achievements growth investments acquisitions',
+      // Broader query 2: Innovation and capabilities
+      'IBM Cloud ERP capabilities methodologies frameworks accelerators platforms innovation centers excellence Garage Rapid Discovery IDCP technical expertise',
+      // Broader query 3: Partnerships and ecosystem
+      'IBM Cloud ERP partnerships ecosystem alliances SAP Oracle Microsoft Workday certifications partner programs collaboration',
+      // Broader query 4: Market positioning and results
+      'IBM Cloud ERP market position competitive advantage client success outcomes benefits ROI business value transformation'
     ],
     'Part Two: Five Case Studies': [
-      'IBM RFI Cloud ERP case study financial management FM implementation results',
-      'IBM RFI Cloud ERP case study HCM human capital payroll transformation',
-      'IBM RFI Cloud ERP case study supply chain SCM implementation outcomes',
-      'IBM RFI Cloud ERP case study sourcing procurement manufacturing',
-      'IBM RFI Cloud ERP case study customer examples industry results'
+      // Broader query 1: Financial Management implementations
+      'IBM Cloud ERP financial management FM accounting case study customer implementation outcomes results ROI benefits industry transformation',
+      // Broader query 2: HCM and Talent implementations
+      'IBM Cloud ERP HCM human capital talent payroll workforce case study customer implementation results benefits outcomes employee experience',
+      // Broader query 3: Supply Chain implementations
+      'IBM Cloud ERP supply chain SCM logistics procurement sourcing manufacturing case study customer implementation results outcomes efficiency',
+      // Broader query 4: Cross-functional transformations
+      'IBM Cloud ERP customer success case study client results outcomes implementation approach methodology timeline project business value',
+      // Broader query 5: Industry-specific examples
+      'IBM Cloud ERP case study industry vertical manufacturing retail healthcare financial services public sector customer reference implementation'
     ],
     'Part Three: Questions and Answers': [
-      'IBM RFI Cloud ERP capabilities features benefits competitive advantage'
+      // Single comprehensive query for Q&A
+      'IBM Cloud ERP capabilities features benefits competitive advantage differentiation approach methodology accelerators platforms innovation technical expertise'
     ],
     'Part Four: Slides on MQ and CC Submission': [
-      'IBM RFI Cloud ERP Magic Quadrant MQ critical capabilities submission',
-      'IBM RFI Cloud ERP Ability to Execute market understanding roadmap',
-      'IBM RFI Cloud ERP Completeness Vision differentiation strategy platform'
+      // Broader query 1: Execution capabilities
+      'IBM Cloud ERP Magic Quadrant Ability to Execute market understanding sales delivery operational excellence customer satisfaction implementation',
+      // Broader query 2: Vision and strategy
+      'IBM Cloud ERP Completeness of Vision strategy roadmap innovation platform differentiation market positioning future direction',
+      // Broader query 3: Critical capabilities assessment
+      'IBM Cloud ERP Critical Capabilities evaluation criteria assessment implementation governance change management risk mitigation customer success'
     ]
   };
 
@@ -536,7 +548,7 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     const query = sectionQueries[i];
     try {
       console.log(`   🔍 Search ${i + 1}/${sectionQueries.length}: "${query}"`);
-      const searchResults = await searchDocuments(query, 10);
+      const searchResults = await searchDocuments(query, 25);
       if (searchResults && searchResults.length > 100) {
         requirementContexts[`search_${i + 1}`] = searchResults;
         console.log(`   ✅ Retrieved ${searchResults.length} characters`);
@@ -554,8 +566,25 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     }
   }
 
+  // Extract 2024 examples for this section as few-shot learning templates
+  let deck2024Examples = '';
+  try {
+    const query2024 = `2024 Cloud ERP Services Submission ${section.name}`;
+    console.log(`   📚 Retrieving 2024 deck examples for "${section.name}"...`);
+    const examples2024 = await searchDocuments(query2024, 5);
+    if (examples2024 && examples2024.length > 100) {
+      deck2024Examples = `\n\n2024 DECK EXAMPLES (USE AS QUALITY/STYLE REFERENCE):\n`;
+      deck2024Examples += `These examples show the EXPECTED quality, depth, and style.\n`;
+      deck2024Examples += `Match this level of detail and evidence-based content for 2026 slides.\n`;
+      deck2024Examples += `---\n${examples2024}\n---\n`;
+      console.log(`   ✅ Retrieved ${examples2024.length} chars from 2024 deck`);
+    }
+  } catch (err) {
+    console.warn(`   ⚠️  Could not retrieve 2024 examples:`, err.message);
+  }
+
   // Build requirement context string with all search results
-  let relevantContext = '\n\nTARGETED DATA FROM AZURE SEARCH:\n';
+  let relevantContext = '\n\nTARGETED DATA FROM AZURE SEARCH (2026 SOURCES):\n';
   relevantContext += '(These search results are the PRIMARY SOURCE for slide content. Use ONLY data from these results.)\n';
   sectionQueries.forEach((query, i) => {
     relevantContext += `\n---\nTarget ${i + 1}: "${query}"\n---\n`;
@@ -586,6 +615,10 @@ Generate ${targetSlides} slides that fit approved layout IDs and advance the nar
 Use ONLY these layouts: L1_Executive_Header, L2_TwoColumn_Proof, L5_Metric_Tiles_3x1. For case sections, also use L3_Case_Card_Grid (overview) and L4_OneCase_DeepDive (5 placeholders). For capability comparisons/roadmaps/risks/partners, use L6_Table_2xN, L7_Roadmap_Timeline, L8_Risk_Mitigation, L9_Partner_Ecosystem.
 
 **CRITICAL**: DO NOT generate any Q&A slides (L10_QA_Bank) within sections. Q&A is handled separately as a section divider only.
+
+**QUALITY STANDARD**: The 2024 submission deck examples provided show the EXPECTED quality level. Match that depth of detail, specificity, and evidence-based content for 2026 slides.
+
+${deck2024Examples}
 
 Slide JSON contract per slide:
 {
