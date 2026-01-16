@@ -14,12 +14,6 @@ const Automizer = pptxAutomizer.default || pptxAutomizer;
 import { searchDocuments } from './azureSearchService.js';
 import { getFrameworkCriteria } from './analystEvaluatorService.js';
 
-// Import modular agents for slide generation pipeline
-import { extractFacts as agentExtractFacts } from '../agents/dataExtractionAgent.js';
-import { planStructure as agentPlanStructure } from '../agents/structurePlanningAgent.js';
-import { synthesizeContent as agentSynthesizeContent } from '../agents/contentSynthesisAgent.js';
-import { validateBatch as agentValidateBatch } from '../agents/qualityValidationAgent.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -616,104 +610,140 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     targetSlides = section.maxSlides;
   }
 
-  // ============================================================================
-  // 4-AGENT PIPELINE FOR SLIDE GENERATION (Modular Architecture)
-  // ============================================================================
-  console.log(`\n   🤖 Using 4-agent pipeline for "${section.name}"...`);
+  const systemPrompt = `You are an expert Analyst Relations briefing deck builder for ${analystFirm}.
+Generate ${targetSlides} slides that fit approved layout IDs and advance the narrative arc.
+Use ONLY these layouts: L1_Executive_Header, L2_TwoColumn_Proof, L5_Metric_Tiles_3x1. For case sections, also use L3_Case_Card_Grid (overview) and L4_OneCase_DeepDive (5 placeholders). For capability comparisons/roadmaps/risks/partners, use L6_Table_2xN, L7_Roadmap_Timeline, L8_Risk_Mitigation, L9_Partner_Ecosystem.
+
+**CRITICAL**: DO NOT generate any Q&A slides (L10_QA_Bank) within sections. Q&A is handled separately as a section divider only.
+
+**QUALITY STANDARD**: The 2024 submission deck examples provided show the EXPECTED quality level. Match that depth of detail, specificity, and evidence-based content for 2026 slides.
+
+${deck2024Examples}
+
+Slide JSON contract per slide:
+{
+  "layout": "L1_Executive_Header | L2_TwoColumn_Proof | L5_Metric_Tiles_3x1 | L3_Case_Card_Grid | L4_OneCase_DeepDive | L6_Table_2xN | L7_Roadmap_Timeline | L8_Risk_Mitigation | L9_Partner_Ecosystem | L10_QA_Bank",
+  "title": "...",
+  "subtitle": "...",
+  "intro": "2-3 sentences providing context (REQUIRED for all slides)",
+  "content": { layout-specific fields },
+  "evidence": "RFI § refs; KB paths; public URLs",
+  "mq_mapping": ["Ability to Execute: ...", "Completeness of Vision: ..."],
+  "gap_flag": true/false
+}
+
+Layout field rules:
+- L1: title, subtitle (one line), intro (2-3 sentences), bullets (MINIMUM 6, maximum 8) in content.key_bullets[], evidence.
+- L2: title, intro (2-3 sentences), content.left_bullets[MINIMUM 3, max 4], content.right_bullets[MINIMUM 3, max 4], content.metric_strip[3 objects {label,value,context,source}], evidence.
+- L7: content.milestones[MINIMUM 4] with {quarter, initiative, outcome, status, evidence_ref}.
+- L9: content.partners[MINIMUM 6] with {tier, partner_name, role, region, proof_point}.
+- L5: content.tiles[<=3 {label,value,context,source}].
+- L3 (case grid placeholder): content.cards array of 5 with fields {case_title, use_case, industry, region, outcome_kpi, timeframe, reference_status}; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L4 (case deep dive placeholder): same fields but single case narrative; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L6 (table 2xN): content.rows[] with {left_label, left_value, right_label, right_value}; use for capability/feature vs proof; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L7 (roadmap timeline): content.milestones[] with {quarter, initiative, outcome, status, evidence_ref}; quarter format "2025Q3"; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L8 (risk + mitigation): content.risks[] with {risk, impact, likelihood, mitigation, owner, timeline}; impact/likelihood must be High/Med/Low from evidence; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L9 (partner ecosystem): content.partners[] with {tier, partner_name, role, region, proof_point}; tier in {Global SI, ISV, Hyperscaler}; if unknown -> "{TO_FILL}" and gap_flag=true.
+- L10: content.items[] with {question, answer, evidence}; answers may be "{TO_FILL}".
+
+Gap policy: If any required field is missing, set value to "{TO_FILL}" and gap_flag=true. Do NOT invent data. Prefer RFI over KB when conflict; if conflict, keep RFI value and set gap_flag=true with note in evidence.
+
+NARRATIVE CONTEXT:
+Theme: "${narrative.overarchingTheme}"
+Story: ${narrative.narrative}
+Key Messages: ${narrative.keyMessages.join('; ')}
+Section Role: ${narrative.sectionTransitions[section.name] || 'Further develop the narrative'}
+
+${firmGuidance}
+
+${criteria.framework.toUpperCase()} EVALUATION CRITERIA - Your content MUST address these dimensions:
+${criteriaList}
+
+🚨 CRITICAL MANDATORY RULES - VIOLATION = REJECTION:
+1. **EVERY slide MUST have an "intro" field (2-3 sentences providing context)**
+2. **EVERY slide MUST have MINIMUM 6 bullets (L1) or 6+ total bullets (L2 split across left/right)**
+3. **EVERY single bullet MUST be backed by data from the search results below - NO EXCEPTIONS**
+4. **CITE EXACT FACTS: Include specific numbers, dates, customer names, capabilities, products from search results**
+5. **NO GENERIC CONTENT - "extensive expertise", "comprehensive capabilities" = AUTOMATIC REJECTION**
+6. **Extract SPECIFIC: deployment numbers (10,000+, 6,500+, 3,000+), country counts (65+), certifications (116K), timeline data, product names (Oracle Cloud Garage, IBM Rapid Discovery, Workday HCM)**
+7. **Each bullet MUST be SUBSTANTIAL with supporting details - not just a bare fact**
+8. **If search results don't cover a topic, write "{TO_FILL}" and gap_flag=true - NEVER invent data**
+9. **EVERY bullet MUST include source citation: [From: PDF filename - Page N] or [From: Excel sheet name]**
+10. **Map content to MQ dimensions in mq_mapping**
+11. **Preferred data order: Azure Search results (highest priority) → then Briefing Pack → then Welcome Packet**
+
+${relevantContext}
+
+Return ONLY valid JSON array with no markdown formatting.`;
+
+  const userPrompt = `Build ${targetSlides} slides for this section using ONLY approved layouts.
+
+**Section**: ${section.name}
+**Duration**: ${section.duration}
+**${slideConstraint}**
+**Narrative Role**: ${narrative.sectionTransitions[section.name] || 'Develop key capabilities'}
+
+MANDATORY - READ THIS FIRST:
+Your slides MUST use ONLY data from the search results below. If a data point is not in the search results, write "{TO_FILL}" and set gap_flag=true. 
+NEVER invent data. NEVER write generic content like "extensive expertise". EVERY bullet must cite its source: [From: DocumentName - PageNumber].
+
+**REQUIREMENT-SPECIFIC DATA FROM AZURE SEARCH**:
+${relevantContext}
+
+**ADDITIONAL CONTEXT**:
+Briefing Pack (structure/requirements):
+${briefingPack.substring(0, 4000)}
+
+Welcome Packet (context):
+${briefingInstructions.substring(0, 2000)}
+
+IBM RFI (vendor response):
+${(vendorResponse || '').substring(0, 4000)}
+
+MANDATORY REQUIREMENTS:
+1. Each slide MUST have an "intro" field with 2-3 sentences providing context
+2. Each slide MUST have MINIMUM 6 bullets (L1) or 6+ total bullets (L2 split across left/right)
+3. READ the search results above CAREFULLY; EXTRACT specific numbers, dates, client names, products, capabilities.
+4. Each bullet MUST include a source citation: [From: Document Name - Page N]
+5. Each bullet must be SUBSTANTIAL with supporting details (not just bare facts)
+6. Use layout IDs L1, L2, L5 for general sections; if this section is the case-study part, also produce one L3 grid + five L4 placeholders (with {TO_FILL}).
+7. If data missing from search results, set field to "{TO_FILL}" and gap_flag=true. DO NOT INVENT DATA.
+8. Include evidence refs per bullet (from search results). Prefer search results; if conflict with other sources, keep search results and set gap_flag=true with note.
+9. Map mq_mapping to relevant MQ dimensions (Ability to Execute / Completeness of Vision).
+10. NO GENERIC MARKETING CONTENT. Every sentence must reference specific data from search results.
+
+Return ONLY valid JSON array of slides (no markdown). Each slide must follow the contract described in the system prompt.`;
+
+  const azureUrl = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${AZURE_OPENAI_API_VERSION}`;
   
-  try {
-    // STEP 1: Data Extraction Agent - Extract atomic facts from search results
-    console.log(`   [1/4] Data Extraction Agent - extracting facts...`);
-    const extractionInput = {
-      searchResults: relevantContext,
-      context: {
-        sectionName: section.name,
-        analystFirm: analystFirm,
-        narrative: {
-          theme: narrative.overarchingTheme,
-          story: narrative.narrative,
-          keyMessages: narrative.keyMessages,
-          sectionRole: narrative.sectionTransitions[section.name] || 'Develop key capabilities'
-        },
-        evaluationCriteria: {
-          framework: criteria.framework,
-          dimensions: criteria.dimensions.map(d => ({ name: d.name, description: d.description }))
-        },
-        briefingContext: briefingPack.substring(0, 2000),
-        vendorContext: (vendorResponse || '').substring(0, 2000)
-      }
-    };
-    
-    const extractedFacts = await agentExtractFacts(extractionInput);
-    console.log(`   ✅ Extracted: ${extractedFacts.scale?.length || 0} scale metrics, ${extractedFacts.capabilities?.length || 0} capabilities, ${extractedFacts.partnerships?.length || 0} partnerships`);
-    
-    // STEP 2: Structure Planning Agent - Plan slide structure and layout distribution
-    console.log(`   [2/4] Structure Planning Agent - planning ${targetSlides} slides...`);
-    const planningInput = {
-      facts: extractedFacts,
-      sectionName: section.name,
-      targetSlides: targetSlides,
-      referenceExamples: deck2024Examples, // Pass as text context for now
-      narrative: {
-        theme: narrative.overarchingTheme,
-        sectionRole: narrative.sectionTransitions[section.name] || 'Develop key capabilities'
+  return await retryWithBackoff(async () => {
+    const response = await fetch(azureUrl, {
+      method: 'POST',
+      headers: {
+        'api-key': AZURE_OPENAI_API_KEY,
+        'Content-Type': 'application/json'
       },
-      evaluationCriteria: criteriaList,
-      constraints: {
-        slideConstraint: slideConstraint,
-        duration: section.duration
-      }
-    };
-    
-    const structurePlan = await agentPlanStructure(planningInput);
-    if (!structurePlan || structurePlan.length === 0) {
-      console.warn(`   ⚠️  Structure planning returned empty, falling back to default structure`);
-      return [];
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 4500,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Section slide generation failed: ${response.status}`);
     }
-    console.log(`   ✅ Planned ${structurePlan.length} slides with layouts`);
-    
-    // STEP 3: Content Synthesis Agent - Generate content for each slide
-    console.log(`   [3/4] Content Synthesis Agent - generating content for ${structurePlan.length} slides...`);
-    const generatedSlides = [];
-    for (let i = 0; i < structurePlan.length; i++) {
-      const slidePlan = structurePlan[i];
-      console.log(`      - Generating slide ${i + 1}/${structurePlan.length}: "${slidePlan.topic}"`);
-      
-      const synthesisInput = {
-        slidePlan: slidePlan,
-        facts: extractedFacts,
-        referenceExamples: deck2024Examples, // Pass as text context
-        narrative: {
-          theme: narrative.overarchingTheme,
-          keyMessages: narrative.keyMessages
-        },
-        evaluationCriteria: criteriaList
-      };
-      
-      const generatedSlide = await agentSynthesizeContent(synthesisInput);
-      generatedSlides.push(generatedSlide);
-    }
-    console.log(`   ✅ Generated ${generatedSlides.length} complete slides`);
-    
-    // STEP 4: Quality Validation Agent - Validate all slides
-    console.log(`   [4/4] Quality Validation Agent - validating ${generatedSlides.length} slides...`);
-    const validationResult = await agentValidateBatch(generatedSlides, deck2024Examples, extractedFacts);
-    
-    const passCount = validationResult.slideResults.filter(r => r.overallPass).length;
-    const avgScore = parseFloat(validationResult.averageScore);
-    const passRate = parseFloat(validationResult.passRate);
-    console.log(`   ✅ Validation: ${passCount}/${generatedSlides.length} passed (${passRate.toFixed(1)}%), avg score: ${avgScore}/100`);
-    
-    // Show sample issues from validation
-    const allIssues = validationResult.slideResults.flatMap(r => r.issues || []);
-    if (allIssues.length > 0) {
-      console.log(`   ⚠️  Common issues detected:`);
-      allIssues.slice(0, 3).forEach(issue => {
-        console.log(`      - ${issue}`);
-      });
-    }
-    
-    // Apply case study placeholders if needed
+
+    const data = await response.json();
+    let slidesJSON = data.choices[0].message.content
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+
     const ensureCasePlaceholders = (parsedSlides) => {
     const isCaseSection = section.name?.toLowerCase().includes('case');
     if (!isCaseSection) return parsedSlides;
@@ -774,16 +804,33 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     return [gridSlide, ...deepDives, ...retained];
   };
 
-    // Return agent-generated slides with case study placeholders if needed
-    const finalSlides = ensureCasePlaceholders(generatedSlides);
-    return finalSlides;
+  // Attempt to parse JSON with better error handling
+  try {
+    const parsed = JSON.parse(slidesJSON);
+    // Ensure it's an array
+    const slides = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' && parsed.slides ? parsed.slides : [parsed]);
+    return ensureCasePlaceholders(slides);
+  } catch (parseError) {
+    console.error('❌ JSON parse error:', parseError.message);
+    console.error('First 500 chars of response:', slidesJSON.substring(0, 500));
+    console.error('Last 500 chars of response:', slidesJSON.substring(slidesJSON.length - 500));
     
-  } catch (agentError) {
-    console.error('❌ 4-agent pipeline failed:', agentError.message);
-    console.error('   Stack:', agentError.stack);
-    // Return empty array on error rather than crashing entire deck generation
-    return [];
+    // Try to find and fix common JSON issues
+    // 1. Remove any trailing commas before closing brackets
+    slidesJSON = slidesJSON.replace(/,(\s*[}\]])/g, '$1');
+    
+    // 2. Try parsing again
+    try {
+      const parsedRetry = JSON.parse(slidesJSON);
+      const slides = Array.isArray(parsedRetry) ? parsedRetry : (parsedRetry && typeof parsedRetry === 'object' && parsedRetry.slides ? parsedRetry.slides : [parsedRetry]);
+      return ensureCasePlaceholders(slides);
+    } catch (secondError) {
+      // If still failing, return empty array rather than crashing
+      console.error('❌ JSON still invalid after cleanup, returning empty slides for this section');
+      return [];
+    }
   }
+  });
 }
 
 /**

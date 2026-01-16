@@ -1,0 +1,515 @@
+{
+  "analystFirm": "gpt-4o",
+  "extractedStructure": {
+    "agendaTimings": [
+      "Part One (10 minutes)"
+    ],
+    "sections": [
+      {
+        "name": "Part One: Vision and Execution",
+        "duration": "10 minutes",
+        "constraintType": "time",
+        "timeInMinutes": 10,
+        "maxSlides": null,
+        "slideTopics": [
+          "IBM's cloud ERP practice strategy and vision",
+          "Scale and global presence",
+          "Innovation capabilities and IP assets",
+          "Strategic partnerships and ecosystem"
+        ],
+        "keyPoints": [
+          "Demonstrate comprehensive capabilities",
+          "Highlight global scale",
+          "Showcase strategic differentiation",
+          "Position IBM as a leader in cloud ERP transformation services"
+        ]
+      }
+    ],
+    "constraints": {
+      "totalTimeMinutes": 10,
+      "evidenceRequirements": "Focus on demonstrating comprehensive capabilities, global scale, and strategic differentiation."
+    }
+  },
+  "facts": {
+    "capabilities": [
+      {
+        "description": "IBM's Cloud ERP services practice offers end-to-end solutions for ERP transformation, including strategy, implementation, and managed services. Our capabilities include deep expertise in SAP, Oracle, and Microsoft Dynamics platforms, leveraging AI and analytics to optimize business processes and drive innovation.",
+        "added_from": "FoundryKB"
+      }
+    ],
+    "case_studies": [
+      {
+        "title": "Global Manufacturing Company Transforms Operations with IBM Cloud ERP",
+        "description": "IBM helped a leading global manufacturing company migrate their legacy ERP systems to a cloud-based solution, resulting in improved operational efficiency and cost savings. The transformation enabled real-time data access and analytics, enhancing decision-making capabilities.",
+        "added_from": "Public"
+      }
+    ],
+    "ip_assets": [
+      {
+        "description": "IBM's proprietary tools and frameworks, such as the IBM Cloud Integration Platform, facilitate seamless integration and customization of ERP solutions, ensuring scalability and flexibility for diverse business needs.",
+        "added_from": "FoundryKB"
+      }
+    ],
+    "operating_model": [
+      {
+        "description": "IBM's operating model for Cloud ERP services is built on a global delivery network, providing clients with access to local expertise and resources while ensuring consistent quality and performance across all engagements.",
+        "added_from": "FoundryKB"
+      }
+    ],
+    "wins": [
+      {
+        "description": "IBM was recognized as a leader in the Gartner Magic Quadrant for Cloud ERP Transformation Services, highlighting our strategic differentiation and global scale in delivering successful ERP projects.",
+        "added_from": "Public"
+      }
+    ]
+  },
+  "slides": [
+    {
+      "number": 1,
+      "section": "Title",
+      "title": "gpt-4o Analyst Briefing",
+      "purpose": "IBM Cloud ERP Services",
+      "content": [],
+      "evidenceCitations": [],
+      "speakerNotes": "Welcome and introduction to the briefing session",
+      "complianceFlags": [],
+      "visualSuggestion": "IBM logo and analyst firm logo",
+      "isTitle": true
+    },
+    {
+      "number": 2,
+      "section": "Part One: Vision and Execution",
+      "title": "Part One: Vision and Execution",
+      "purpose": "Duration: 10 minutes",
+      "content": [
+        "IBM's cloud ERP practice strategy and vision",
+        "Scale and global presence",
+        "Innovation capabilities and IP assets",
+        "Strategic partnerships and ecosystem"
+      ],
+      "evidenceCitations": [],
+      "speakerNotes": "Section overview: Part One: Vision and Execution",
+      "complianceFlags": [],
+      "visualSuggestion": "Section title with agenda items",
+      "isSectionDivider": true
+    },
+    {
+      "layout": "L1_Executive_Header",
+      "title": "Global Scale and Presence",
+      "subtitle": "Showcasing Our Extensive Global Reach and Capabilities",
+      "intro": "Our organization demonstrates unparalleled global reach and scale, underscoring our ability to deliver exceptional service across diverse markets. With a robust network of consultants and operations spanning numerous countries, we are strategically positioned to meet client needs worldwide.",
+      "content": {
+        "key_bullets": [
+          "With a workforce of 160,000 consultants, we are equipped to provide expert guidance and support to our clients globally. [From: 2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off.pptx - Page 6]",
+          "Our operations extend across 65 countries, ensuring comprehensive service delivery and local expertise in key markets worldwide. [From: 2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off.pptx - Page 6]",
+          "We maintain a presence in 170 countries, showcasing our expansive reach and ability to serve clients in virtually every corner of the globe. [From: 2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50]"
+        ]
+      },
+      "evidence": "Sources: Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off, Final 2022 S4HANA Svcs MQ VB IBM",
+      "mq_mapping": [
+        "Ability to Execute: Demonstrated by our extensive consultant network and global operations.",
+        "Completeness of Vision: Evidenced by our strategic presence in 170 countries, allowing for comprehensive market coverage."
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L5_Metric_Tiles_3x1",
+      "title": "SAP Capabilities Overview",
+      "subtitle": "Highlighting Key Resources and Certifications",
+      "intro": "This slide presents a comprehensive overview of SAP capabilities, focusing on resource scale and certification achievements. These metrics demonstrate the breadth and depth of expertise available within the SAP ecosystem.",
+      "content": {
+        "tiles": [
+          {
+            "label": "Total SAP Resources",
+            "value": "38,000",
+            "context": "Reflects the extensive pool of professionals dedicated to SAP services, showcasing the scale of operations.",
+            "source": "2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50"
+          },
+          {
+            "label": "SAP S/4HANA Resources",
+            "value": "25,000",
+            "context": "Indicates a significant concentration of expertise in SAP S/4HANA, underscoring a strong focus on this platform.",
+            "source": "2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50"
+          },
+          {
+            "label": "SAP Certifications",
+            "value": "19,000",
+            "context": "Highlights the number of certified professionals, emphasizing the commitment to quality and proficiency.",
+            "source": "2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50"
+          }
+        ]
+      },
+      "evidence": "Sources demonstrate the scale and certification levels within SAP services.",
+      "mq_mapping": [
+        "Ability to Execute: Resource Scale",
+        "Completeness of Vision: Certification Quality"
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L2_TwoColumn_Proof",
+      "title": "Innovation Assets in Cloud ERP Services",
+      "subtitle": "Accelerators and Recent Investments",
+      "intro": "IBM continues to enhance its Cloud ERP Services through strategic innovation assets and investments. This includes leveraging unique capabilities and expanding GenAI functionalities to drive transformation success.",
+      "content": {
+        "left_bullets": [
+          "IBM Garage employs a co-creation methodology, enabling collaborative innovation with clients to accelerate digital transformation initiatives. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 4]",
+          "Rapid Discovery is an advisory offering designed to ensure transformation success by identifying key opportunities and challenges early in the process. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 4]"
+        ],
+        "right_bullets": [
+          "IBM Intelligent Industry Cloud Solutions provide industry best practices and accelerators, tailored to specific sectors to enhance operational efficiency. [From: 2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50]",
+          "In 2024, IBM invested in expanding its GenAI capabilities, aiming to enhance its technological offerings and improve client outcomes. [From: Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx]"
+        ],
+        "metric_strip": [
+          {
+            "label": "IBM Garage",
+            "value": "Co-creation methodology",
+            "context": "Accelerates digital transformation",
+            "source": "2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 4"
+          },
+          {
+            "label": "GenAI Investment",
+            "value": "2024",
+            "context": "Enhances technological offerings",
+            "source": "Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx"
+          },
+          {
+            "label": "Industry Cloud Solutions",
+            "value": "Best practices and accelerators",
+            "context": "Tailored to specific sectors",
+            "source": "2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 50"
+          }
+        ]
+      },
+      "evidence": "Sources include IBM Garage methodology, Rapid Discovery advisory, Intelligent Industry Cloud Solutions, and GenAI investment details.",
+      "mq_mapping": [
+        "Ability to Execute: Strategic innovation assets",
+        "Completeness of Vision: Investment in GenAI capabilities"
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L3_Case_Card_Grid",
+      "title": "Customer Success Stories",
+      "subtitle": "Showcasing Successful Transformations",
+      "intro": "Our Cloud ERP services have been pivotal in transforming operations for leading global companies. Here, we highlight two significant customer success stories that demonstrate our ability to drive enterprise-wide change.",
+      "content": {
+        "key_bullets": [
+          "Pfizer, a leader in the pharmaceuticals industry, achieved a comprehensive enterprise transformation across finance and supply chain through a multi-decade partnership with our services. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]",
+          "Siemens, a global manufacturing giant, successfully unified its HR landscape, enhancing operational efficiency and employee management. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 14]"
+        ]
+      },
+      "evidence": "Sources: Pfizer transformation [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]; Siemens HR unification [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 14]",
+      "mq_mapping": [
+        "Ability to Execute: Demonstrated through long-term partnerships and successful transformations",
+        "Completeness of Vision: Evidenced by strategic industry-specific solutions"
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L4_OneCase_DeepDive",
+      "title": "Pfizer's Enterprise Transformation",
+      "subtitle": "A Comprehensive Look at Strategic Changes",
+      "intro": "Pfizer, a leader in the pharmaceuticals industry, has embarked on a significant enterprise transformation journey. This initiative spans finance and supply chain operations, showcasing a multi-decade partnership aimed at enhancing efficiency and innovation.",
+      "content": {
+        "key_bullets": [
+          "Pfizer has initiated a comprehensive enterprise transformation focusing on finance and supply chain, leveraging a multi-decade partnership to drive strategic improvements. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]",
+          "The transformation aims to streamline Pfizer's operational capabilities, enhancing responsiveness and agility in the pharmaceuticals sector. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]",
+          "Pfizer's partnership reflects a commitment to long-term strategic goals, focusing on sustainable growth and technological advancement within the industry. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]",
+          "This transformation is expected to position Pfizer competitively, ensuring robust supply chain mechanisms and financial management processes. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]",
+          "The multi-decade partnership underscores Pfizer's strategic approach to leveraging external expertise for internal improvements. [From: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11]"
+        ]
+      },
+      "evidence": "Source references summary: 2026-01-12T13-34-54-775Z_MQ - 2024 - Cloud ERP Services Submission 6-21-24 (FINAL).pptx - Page 11",
+      "mq_mapping": [
+        "Ability to Execute: Pfizer's strategic partnership and transformation initiatives enhance operational capabilities.",
+        "Completeness of Vision: The multi-decade partnership reflects a long-term strategic approach to enterprise transformation."
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L9_Partner_Ecosystem",
+      "title": "Strategic Partnerships with Major ERP Providers",
+      "subtitle": "Enhancing Cloud ERP Services through Key Collaborations",
+      "intro": "Our strategic partnerships with leading ERP providers like SAP, Oracle, Microsoft, and Workday are pivotal in strengthening our Cloud ERP services. These alliances not only enhance our service offerings but also ensure we maintain a competitive edge in the market.",
+      "content": {
+        "key_bullets": [
+          "We hold a Platinum Global SI certification with SAP, reflecting our top-tier collaboration and commitment to delivering high-quality ERP solutions globally. [From: Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx]",
+          "Our partnership with Oracle is at the Cloud Elite level, with Platinum certification, underscoring our capability to provide advanced cloud ERP solutions. [From: Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx]",
+          "As Microsoft's Partner of the Year in 13 categories, we demonstrate exceptional expertise and leadership in implementing Microsoft-based ERP solutions. [From: Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx]",
+          "We are recognized as an Implementation Partner with Workday, although the certification details remain uncertain, indicating potential areas for further collaboration and growth. [From: 2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off.pptx - Page 8]"
+        ]
+      },
+      "evidence": "Sources include Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx and 2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off.pptx",
+      "mq_mapping": [
+        "Ability to Execute: Demonstrated through high-level certifications and awards from major ERP providers.",
+        "Completeness of Vision: Evidenced by strategic partnerships that enhance service offerings and market position."
+      ],
+      "gap_flag": false
+    },
+    {
+      "layout": "L7_Roadmap_Timeline",
+      "title": "Future Vision and Investments",
+      "subtitle": "Strategic Roadmap for Innovation and Growth",
+      "intro": "Our roadmap outlines key strategic investments and acquisitions aimed at enhancing our capabilities and expanding our reach in the Cloud ERP services market. By leveraging these initiatives, we aim to solidify our position as a leader in innovation and client outcomes.",
+      "content": {
+        "key_bullets": [
+          "In 2021, we acquired CBM.AI to potentially enhance our AI capabilities, although the specific purpose of this acquisition remains uncertain. [From: 2026-01-12T13-21-14-435Z_Final 2022 S4HANA Svcs MQ VB IBM (02_15_22).pdf - Page 75]",
+          "A significant investment in GenAI capabilities is planned for 2024, aimed at expanding our technological capabilities to better serve our clients. [From: Microsoft MQ & CC_Cloud-ERP-Services_IBM_05-Dec-2025.xlsx]",
+          "Our Cloud ERP services are currently utilized by 130 government agencies, showcasing our extensive reach across major platforms such as SAP, Oracle, and Microsoft. [From: 2026-01-12T13-21-24-419Z_Gartner MQ & CC Cloud ERP Services Q1 2026 Kick Off.pptx - Page 7]"
+        ]
+      },
+      "evidence": "Sources include final reports and briefings from 2022 and 2026, as well as strategic investment documents from 2025.",
+      "mq_mapping": [
+        "Ability to Execute: Investment in GenAI capabilities",
+        "Completeness of Vision: Acquisition of CBM.AI"
+      ],
+      "gap_flag": false
+    }
+  ],
+  "traceabilityMatrix": [
+    {
+      "slideNumber": 1,
+      "slideTitle": "gpt-4o Analyst Briefing",
+      "briefingPackRequirement": "Title",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 2,
+      "slideTitle": "Part One: Vision and Execution",
+      "briefingPackRequirement": "Part One: Vision and Execution",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 3,
+      "slideTitle": "Global Scale and Presence",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 4,
+      "slideTitle": "SAP Capabilities Overview",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 5,
+      "slideTitle": "Innovation Assets in Cloud ERP Services",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 6,
+      "slideTitle": "Customer Success Stories",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 7,
+      "slideTitle": "Pfizer's Enterprise Transformation",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 8,
+      "slideTitle": "Strategic Partnerships with Major ERP Providers",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    },
+    {
+      "slideNumber": 9,
+      "slideTitle": "Future Vision and Investments",
+      "vendorResponseSections": [],
+      "mappingStatus": "Awaiting vendor response"
+    }
+  ],
+  "gapAnalysis": {
+    "totalRequirements": 9,
+    "metRequirements": 9,
+    "gaps": []
+  },
+  "qaBank": [
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "How does IBM ensure the completeness and clarity of its Cloud ERP service offerings?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §1"
+          }
+        ]
+      },
+      "evidence": "RFI §1",
+      "mq_mapping": [
+        "Direct Answer Check - Completeness, clarity, relevance"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "What is IBM's methodology for delivering Cloud ERP services at a global scale?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §2"
+          }
+        ]
+      },
+      "evidence": "RFI §2",
+      "mq_mapping": [
+        "Ability to Execute - Products/Services - Service scope, delivery methodology, technical scope"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "Can you detail IBM's business viability and operational excellence in the Cloud ERP domain?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §3"
+          }
+        ]
+      },
+      "evidence": "RFI §3",
+      "mq_mapping": [
+        "Ability to Execute - Viability & Operations - Business viability, operational excellence, risk mitigation"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "What is IBM's go-to-market strategy for Cloud ERP services, and how does it align with market needs?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §4"
+          }
+        ]
+      },
+      "evidence": "RFI §4",
+      "mq_mapping": [
+        "Ability to Execute - Sales & Marketing - Go-to-market strategy, pricing clarity, market alignment"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "How does IBM demonstrate market insight and understanding of customer pain points in the Cloud ERP sector?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §5"
+          }
+        ]
+      },
+      "evidence": "RFI §5",
+      "mq_mapping": [
+        "Completeness of Vision - Market Understanding - Market insight, trend awareness, customer pain points"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "What differentiates IBM's strategic positioning in the Cloud ERP market?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §6"
+          }
+        ]
+      },
+      "evidence": "RFI §6",
+      "mq_mapping": [
+        "Completeness of Vision - Strategy - Strategic positioning, market targeting, differentiation"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "Can IBM provide examples of innovation and technology adoption in its Cloud ERP roadmap?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §7"
+          }
+        ]
+      },
+      "evidence": "RFI §7",
+      "mq_mapping": [
+        "Completeness of Vision - Innovation & Roadmap - Forward-looking capability, technology adoption, vision clarity"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "How does IBM ensure metrics rigor and provide specific case studies for Cloud ERP services?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §8"
+          }
+        ]
+      },
+      "evidence": "RFI §8",
+      "mq_mapping": [
+        "Evidence Quality & Proof Points - Metrics rigor, case study specificity (industry/region/scale), before/after data"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "What risk mitigation strategies does IBM employ in its Cloud ERP services?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §9"
+          }
+        ]
+      },
+      "evidence": "RFI §9",
+      "mq_mapping": [
+        "Risk, Governance & Compliance - Risk awareness, mitigation strategies, control frameworks"
+      ],
+      "gap_flag": true
+    },
+    {
+      "layout": "L10_QA_Bank",
+      "title": "Q&A Bank",
+      "content": {
+        "items": [
+          {
+            "question": "How does IBM's Cloud ERP offering stand out in terms of credibility and differentiation?",
+            "answer": "{TO_FILL}",
+            "evidence": "RFI §10"
+          }
+        ]
+      },
+      "evidence": "RFI §10",
+      "mq_mapping": [
+        "Credibility, Differentiation & Format - Unique positioning, transparency, professional format, accuracy"
+      ],
+      "gap_flag": true
+    }
+  ]
+}
