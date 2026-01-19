@@ -425,24 +425,29 @@ function scoreChunkRelevance(chunk, query) {
  * Retrieve relevant chunks from documents and track which documents were used
  * Uses Azure AI Search when available, falls back to blob storage chunking
  */
-export async function retrieveDocumentContext(documentNames, question, maxChunks = 5) {
+export async function retrieveDocumentContext(documentNames, question, maxChunks = 5, metadataFilter = null, projectMetadata = {}) {
   if (!documentNames || documentNames.length === 0) {
-    return { context: '', usedDocuments: [] };
+    return { context: '', usedDocuments: [], metadataApplied: null };
   }
   
   console.log(`🔍 Retrieving context from ${documentNames.length} document(s)`);
+  
+  // Log metadata filtering if applied
+  if (metadataFilter) {
+    console.log(`📋 Metadata filter applied:`, metadataFilter);
+  }
   
   // Try Azure AI Search first (better retrieval quality)
   if (isSearchAvailable()) {
     console.log('🚀 Using Azure AI Search for retrieval');
     try {
-      const searchContext = await searchDocuments(question, maxChunks);
+      const searchContext = await searchDocuments(question, maxChunks, metadataFilter);
       
       if (searchContext) {
         // Extract document names from search results (basic parsing)
         const usedDocuments = documentNames; // For now, assume all docs may be searched
         console.log(`✅ Retrieved context from Azure AI Search`);
-        return { context: searchContext, usedDocuments };
+        return { context: searchContext, usedDocuments, metadataApplied: metadataFilter };
       }
     } catch (error) {
       console.warn('⚠️ Azure Search failed, falling back to blob storage:', error.message);
@@ -457,6 +462,29 @@ export async function retrieveDocumentContext(documentNames, question, maxChunks
   
   // Load and chunk all documents
   for (const docName of documentNames) {
+    // Apply metadata filtering at document level if provided
+    const docMetadata = projectMetadata[docName];
+    if (metadataFilter && docMetadata) {
+      // Check if document matches filter criteria
+      if (metadataFilter.sourceCategory && docMetadata.sourceCategory !== metadataFilter.sourceCategory) {
+        console.log(`⏭️  Skipping ${docName} - sourceCategory doesn't match filter`);
+        continue;
+      }
+      if (metadataFilter.primaryOnly && !docMetadata.isPrimaryContent) {
+        console.log(`⏭️  Skipping ${docName} - not primary content`);
+        continue;
+      }
+      if (metadataFilter.priority) {
+        const priorityOrder = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+        const docPriorityIndex = priorityOrder.indexOf(docMetadata.priority);
+        const filterPriorityIndex = priorityOrder.indexOf(metadataFilter.priority);
+        if (docPriorityIndex < filterPriorityIndex) {
+          console.log(`⏭️  Skipping ${docName} - priority ${docMetadata.priority} below filter ${metadataFilter.priority}`);
+          continue;
+        }
+      }
+    }
+    
     const content = await loadDocumentContent(docName);
     if (content) {
       loadedDocuments.add(docName);
@@ -465,7 +493,8 @@ export async function retrieveDocumentContext(documentNames, question, maxChunks
         allChunks.push({
           source: docName,
           content: chunk,
-          relevance: scoreChunkRelevance(chunk, question)
+          relevance: scoreChunkRelevance(chunk, question),
+          metadata: docMetadata || {}
         });
       });
     }
@@ -478,7 +507,7 @@ export async function retrieveDocumentContext(documentNames, question, maxChunks
   
   if (topChunks.length === 0) {
     console.log('⚠️  No relevant document content found');
-    return { context: '', usedDocuments: [] };
+    return { context: '', usedDocuments: [], metadataApplied: metadataFilter };
   }
   
   // Track which unique documents were actually used in top chunks
@@ -493,7 +522,7 @@ export async function retrieveDocumentContext(documentNames, question, maxChunks
   console.log(`✅ Retrieved ${topChunks.length} relevant chunks from ${usedDocuments.length} document(s)`);
   usedDocuments.forEach(doc => console.log(`   📄 ${doc}`));
   
-  return { context, usedDocuments };
+  return { context, usedDocuments, metadataApplied: metadataFilter };
 }
 
 /**

@@ -167,6 +167,7 @@ Return same JSON structure with missing fields filled; do not invent new rows.`;
  * @param {string} analystFirm - Gartner | Forrester | IDC | Everest Group
  * @param {string} aiModel - DEPRECATED - now uses Azure OpenAI deployment
  * @param {Function} onProgress - Optional callback for progress updates: (stepNum, totalSteps, message) => void
+ * @param {Object} sectionConfig - Optional configuration for section generation actions ('content', 'break', 'skip')
  * @returns {Promise<Object>} Deck structure with slides, traceability, gaps, Q&A
  */
 export const generateBriefingDeck = async (
@@ -175,16 +176,17 @@ export const generateBriefingDeck = async (
   vendorResponse,
   analystFirm = 'Gartner',
   aiModel = null,  // Deprecated - using Azure OpenAI
-  onProgress = null
+  onProgress = null,
+  sectionConfig = {} // New parameter: { "Section Name": "content" | "break" | "skip" }
 ) => {
   console.log('📊 [BRIEFING DECK] Starting multi-pass deck generation...');
   console.log(`   Analyst firm: ${analystFirm}`);
   console.log(`   Using: Azure OpenAI (${AZURE_OPENAI_DEPLOYMENT}) + Azure AI Search`);
   console.log(`   Briefing pack length: ${briefingPack.length} chars`);
   console.log(`   Instructions length: ${briefingInstructions.length} chars`);
-  console.log(`   Vendor response: Using Azure AI Search (512 indexed chunks)`);
+  console.log(`   Section config keys: ${Object.keys(sectionConfig).join(', ')}`);
 
-  // Validate input content is not extraction error strings
+  // Validate input content
   if (briefingPack.startsWith('[PDF file') || briefingPack.startsWith('[Word document') || briefingPack.startsWith('[PowerPoint')) {
     throw new Error(`Document extraction failed: ${briefingPack.substring(0, 200)}`);
   }
@@ -234,14 +236,22 @@ export const generateBriefingDeck = async (
     emitProgress(4, 6, 'Generating slides for each section...');
     for (let i = 0; i < structure.sections.length; i++) {
       const section = structure.sections[i];
+      // Determine action for this section based on user config
+      // Default to 'content' if not specified
+      const action = sectionConfig[section.name] || 'content';
       
-      // Add throttling delay between sections to avoid rate limits
-      if (i > 0) {
+      if (action === 'skip') {
+        console.log(`   ⏩ Skipping section "${section.name}" (User requested skip)`);
+        continue;
+      }
+
+      // Add throttling delay between sections if generating content
+      if (i > 0 && action === 'content') {
         console.log(`   ⏱️  Throttling 3s before section ${i + 1}/${structure.sections.length}...`);
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
       
-      // Add section divider slide
+      // Add section divider slide (for both 'break' and 'content' actions)
       const sectionDivider = {
         number: allSlides.length + 1,
         section: section.name,
@@ -256,10 +266,17 @@ export const generateBriefingDeck = async (
       };
       allSlides.push(sectionDivider);
       
-      // Skip slide generation for Q&A sections - they are just dividers
+      if (action === 'break') {
+        console.log(`   🛑 Section break only for "${section.name}" (User requested break)`);
+        continue;
+      }
+      
+      // Implicit check: action === 'content'
+      
+      // Auto-fallback: Q&A sections default to skipping content if not explicitly configured to 'content'
       const isQASection = section.name?.toLowerCase().includes('q&a') || section.name?.toLowerCase().includes('questions');
-      if (isQASection) {
-        console.log(`   ℹ️  Skipping slide generation for Q&A section "${section.name}" - using section divider only`);
+      if (isQASection && (!sectionConfig[section.name] || sectionConfig[section.name] !== 'content')) {
+        console.log(`   ℹ️  Skipping slide generation for Q&A section "${section.name}" (Auto-fallback)`);
         continue;
       }
       
@@ -308,6 +325,24 @@ export const generateBriefingDeck = async (
     throw error;
   }
 };
+
+/**
+ * Analyze briefing structure WITHOUT generating content
+ * Used for the "Review Structure" phase of deck generation
+ */
+export const analyzeBriefingStructure = async (briefingPack, briefingInstructions, analystFirm = 'Gartner') => {
+  console.log('🔍 [BRIEFING DECK] Analyzing structure only...');
+  
+  // Reuse the existing parsing logic
+  const structure = await parseBriefingStructure(briefingPack, briefingInstructions, analystFirm, null);
+  
+  return {
+    sections: structure.sections,
+    totalSlides: structure.totalSlides,
+    agendaTimings: structure.agendaTimings,
+    constraints: structure.constraints
+  };
+}
 
 /**
  * PASS 1: Generate narrative arc and golden thread connecting all sections
@@ -659,6 +694,8 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
         sectionRole: narrative.sectionTransitions[section.name] || 'Develop key capabilities'
       },
       evaluationCriteria: criteriaList,
+      requiredTopics: section.slideTopics || [],
+      keyPoints: section.keyPoints || [],
       constraints: {
         slideConstraint: slideConstraint,
         duration: section.duration
@@ -692,8 +729,14 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
       
       const generatedSlide = await agentSynthesizeContent(synthesisInput);
       generatedSlides.push(generatedSlide);
+      
+      // Throttle generation to prevent TPM rate limits (3s delay)
+      if (i < structurePlan.length - 1) {
+        process.stdout.write('.'); // Show activity during wait
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
     }
-    console.log(`   ✅ Generated ${generatedSlides.length} complete slides`);
+    console.log(`\n   ✅ Generated ${generatedSlides.length} complete slides`);
     
     // STEP 4: Quality Validation Agent - Validate all slides
     console.log(`   [4/4] Quality Validation Agent - validating ${generatedSlides.length} slides...`);
@@ -969,7 +1012,28 @@ export const createPresentationFromDeck = async (deckStructure) => {
           targetSlide.generate((pptSlide) => {
             console.log(`      Rendering slide ${slideIdx + 1}: ${slide.title} (${slide.layout || 'L2'})`);
             const layout = slide.layout || (slide.isSectionDivider ? 'L1_Executive_Header' : 'L2_TwoColumn_Proof');
-            const evidenceText = slide.evidence || (slide.evidenceCitations ? slide.evidenceCitations.join('; ') : '');
+            // Collect sources from content objects to ensure evidence is captured
+            let collectedSources = [];
+            const c = slide.content || {};
+            
+            if (Array.isArray(c.key_bullets)) {
+                collectedSources = c.key_bullets.map(b => typeof b === 'object' ? b.source : null);
+            } else if (c.left_bullets || c.right_bullets) {
+                const l = c.left_bullets || [];
+                const r = c.right_bullets || [];
+                collectedSources = [...l, ...r].map(b => typeof b === 'object' ? b.source : null);
+            } else if (c.tiles) { // L5
+                collectedSources = c.tiles.map(t => t.source);
+            } else if (c.cards) { // L3
+                collectedSources = c.cards.map(t => t.reference_status || t.source); // Fallback to ref status if source missing
+            } else if (c.items) { // L10
+                collectedSources = c.items.map(i => i.evidence || i.source); // Q&A might have evidence field
+            }
+            
+            // Filter empty and unique
+            const uniqueSources = [...new Set(collectedSources.filter(s => s && s.length > 0 && s !== '{TO_FILL}'))];
+            
+            const evidenceText = slide.evidence || (slide.evidenceCitations ? slide.evidenceCitations.join('; ') : '') || uniqueSources.join('; ');
 
             const addEvidence = (yPos) => {
               if (!evidenceText) return;
@@ -995,34 +1059,38 @@ export const createPresentationFromDeck = async (deckStructure) => {
             };
 
             const renderL1 = () => {
+              // Layout optimized for 16:9 (10x5.625)
               pptSlide.addText(slide.title || 'Untitled', {
-                x: 0.5, y: 0.6, w: 9.0, h: 0.8,
-                fontSize: 28, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
+                fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
-              if (slide.subtitle) {
-                pptSlide.addText(slide.subtitle, {
-                  x: 0.5, y: 1.4, w: 9.0, h: 0.4,
-                  fontSize: 14, italic: true, color: ibm.grayMid, fontFace, align: 'left', wrap: true
+              if (slide.intro) {
+                 pptSlide.addText(slide.intro, {
+                  x: 0.5, y: 1.0, w: 9.0, h: 0.7, // Narrative intro
+                  fontSize: 14, color: ibm.gray, fontFace, align: 'left', wrap: true
                 });
               }
               const bullets = slide.content?.key_bullets || slide.content || [];
               if (bullets?.length) {
                 pptSlide.addText(
-                  bullets.map((b) => ({ text: b, options: { bullet: true, fontSize: 16, color: ibm.gray, lineSpacing: 26 } })),
-                  { x: 0.5, y: 2.0, w: 9.0, h: 3.5, fontFace, align: 'left' }
+                  bullets.map((b) => ({ 
+                    text: typeof b === 'object' ? b.text : b, 
+                    options: { bullet: true, fontSize: 13, color: ibm.gray, lineSpacing: 20, breakLine: true } 
+                  })),
+                  { x: 0.5, y: 1.8, w: 9.0, h: 3.2, fontFace, align: 'left' }
                 );
               }
-              addEvidence(6.5);
+              addEvidence(5.1);
             };
 
             const renderL2 = () => {
               pptSlide.addText(slide.title || 'Untitled', {
-                x: 0.5, y: 0.5, w: 9.0, h: 0.7,
-                fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
+                fontSize: 22, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
-              if (slide.subtitle) {
-                pptSlide.addText(slide.subtitle, {
-                  x: 0.5, y: 1.2, w: 9.0, h: 0.4,
+              if (slide.intro) {
+                pptSlide.addText(slide.intro, {
+                  x: 0.5, y: 0.9, w: 9.0, h: 0.6,
                   fontSize: 12, italic: true, color: ibm.grayMid, fontFace, align: 'left', wrap: true
                 });
               }
@@ -1032,78 +1100,72 @@ export const createPresentationFromDeck = async (deckStructure) => {
               let right = [];
               
               if (Array.isArray(slide.content)) {
-                // Old format: split array in half
                 const mid = Math.ceil(slide.content.length / 2);
                 left = slide.content.slice(0, mid);
                 right = slide.content.slice(mid);
-              } else if (slide.content?.left_bullets && slide.content?.right_bullets) {
-                // New format
-                left = slide.content.left_bullets;
-                right = slide.content.right_bullets;
-              } else {
-                // Fallback: try to extract something
-                left = ['Content structure not recognized'];
-                right = ['Please check slide data'];
+              } else if (slide.content?.left_bullets || slide.content?.right_bullets) {
+                left = slide.content.left_bullets || [];
+                right = slide.content.right_bullets || [];
               }
               
+              const mapBullet = (b) => ({ 
+                text: typeof b === 'object' ? b.text : b, 
+                options: { bullet: true, fontSize: 11, color: ibm.gray, lineSpacing: 18, breakLine: true } 
+              });
+
               if (left.length > 0) {
-                pptSlide.addText(left.map((b) => ({ text: b, options: { bullet: true, fontSize: 14, color: ibm.gray, lineSpacing: 24 } })), {
-                  x: 0.5, y: 1.8, w: 4.4, h: 3.6, fontFace, align: 'left'
+                pptSlide.addText(left.map(mapBullet), {
+                  x: 0.5, y: 1.6, w: 4.4, h: 2.8, fontFace, align: 'left', valign: 'top'
                 });
               }
               if (right.length > 0) {
-                pptSlide.addText(right.map((b) => ({ text: b, options: { bullet: true, fontSize: 14, color: ibm.gray, lineSpacing: 24 } })), {
-                  x: 5.0, y: 1.8, w: 4.4, h: 3.6, fontFace, align: 'left'
+                pptSlide.addText(right.map(mapBullet), {
+                  x: 5.0, y: 1.6, w: 4.4, h: 2.8, fontFace, align: 'left', valign: 'top'
                 });
               }
               
+              // Only render metric strip if explicitly provided
               const tiles = slide.content?.metric_strip || [];
-              tiles.slice(0, 3).forEach((t, idx) => {
-                pptSlide.addShape('rect', {
-                  x: 0.5 + idx * 3.1,
-                  y: 5.6,
-                  w: 3.0,
-                  h: 0.9,
-                  fill: { color: 'F4F4F4' },
-                  line: { color: ibm.blue, width: 1 }
+              if (tiles.length > 0) {
+                tiles.slice(0, 3).forEach((t, idx) => {
+                  pptSlide.addShape('rect', {
+                    x: 0.5 + idx * 3.1,
+                    y: 4.5,
+                    w: 3.0,
+                    h: 0.8,
+                    fill: { color: 'F4F4F4' },
+                    line: { color: ibm.blue, width: 1 }
+                  });
+                  pptSlide.addText(`${t.label || ''}: ${t.value || ''}`, {
+                    x: 0.6 + idx * 3.1,
+                    y: 4.55,
+                    w: 2.8,
+                    h: 0.3,
+                    fontSize: 10,
+                    color: ibm.blue,
+                    fontFace,
+                    wrap: true
+                  });
+                  if (t.context) {
+                    pptSlide.addText(t.context, {
+                      x: 0.6 + idx * 3.1,
+                      y: 4.85,
+                      w: 2.8,
+                      h: 0.3,
+                      fontSize: 9,
+                      color: ibm.grayMid,
+                      fontFace,
+                      wrap: true
+                    });
+                  }
                 });
-                pptSlide.addText(`${t.label || '{TO_FILL}'}: ${t.value || '{TO_FILL}'}`, {
-                  x: 0.6 + idx * 3.1,
-                  y: 5.65,
-                  w: 2.8,
-                  h: 0.35,
-                  fontSize: 12,
-                  color: ibm.blue,
-                  fontFace,
-                  wrap: true
-                });
-                pptSlide.addText(t.context || '{TO_FILL}', {
-                  x: 0.6 + idx * 3.1,
-                  y: 6.0,
-                  w: 2.8,
-                  h: 0.35,
-                  fontSize: 10,
-                  color: ibm.grayMid,
-                  fontFace,
-                  wrap: true
-                });
-                pptSlide.addText(t.source || '', {
-                  x: 0.6 + idx * 3.1,
-                  y: 6.3,
-                  w: 2.8,
-                  h: 0.25,
-                  fontSize: 9,
-                  color: ibm.grayMid,
-                  fontFace,
-                  wrap: true
-                });
-              });
-              addEvidence(6.9);
+              }
+              addEvidence(5.4);
             };
 
             const renderL5 = () => {
               pptSlide.addText(slide.title || 'Headline Metrics', {
-                x: 0.5, y: 0.5, w: 9.0, h: 0.7,
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
                 fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
               const tiles = slide.content?.tiles || [];
@@ -1116,75 +1178,94 @@ export const createPresentationFromDeck = async (deckStructure) => {
                   fill: { color: 'F4F4F4' },
                   line: { color: ibm.blue, width: 1 }
                 });
-                pptSlide.addText(t.label || '{TO_FILL}', { x: 0.6 + idx * 3.1, y: 1.6, w: 2.8, h: 0.4, fontSize: 12, color: ibm.grayMid, fontFace, wrap: true });
-                pptSlide.addText(t.value || '{TO_FILL}', { x: 0.6 + idx * 3.1, y: 2.0, w: 2.8, h: 0.6, fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left' });
+                const label = t.label || '';
+                const value = t.value || '';
+                
+                if (label) {
+                   pptSlide.addText(label, { x: 0.6 + idx * 3.1, y: 1.6, w: 2.8, h: 0.4, fontSize: 12, color: ibm.grayMid, fontFace, wrap: true });
+                }
+                if (value) {
+                   pptSlide.addText(value, { x: 0.6 + idx * 3.1, y: 2.0, w: 2.8, h: 0.6, fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left' });
+                }
+                
                 pptSlide.addText(t.context || '', { x: 0.6 + idx * 3.1, y: 2.7, w: 2.8, h: 0.4, fontSize: 10, color: ibm.grayMid, fontFace, wrap: true });
                 pptSlide.addText(t.source || '', { x: 0.6 + idx * 3.1, y: 3.1, w: 2.8, h: 0.3, fontSize: 9, color: ibm.grayMid, fontFace, wrap: true });
               });
-              addEvidence(6.9);
+              addEvidence(5.1);
             };
 
             const renderL3 = () => {
               pptSlide.addText(slide.title || 'Case Study Overview', {
-                x: 0.5, y: 0.5, w: 9.0, h: 0.7,
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
                 fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
               const cards = slide.content?.cards || [];
+              // Optimized coordinates for 16:9 (5.625 height)
               const positions = [
-                { x: 0.5, y: 1.5 }, { x: 4.9, y: 1.5 }, { x: 0.5, y: 3.3 }, { x: 4.9, y: 3.3 }, { x: 2.7, y: 5.1 }
+                { x: 0.5, y: 1.1 }, { x: 4.9, y: 1.1 }, 
+                { x: 0.5, y: 2.5 }, { x: 4.9, y: 2.5 }, 
+                { x: 2.7, y: 3.9 }
               ];
               cards.slice(0, positions.length).forEach((c, idx) => {
                 const pos = positions[idx];
                 pptSlide.addShape('rect', {
-                  x: pos.x, y: pos.y, w: 3.8, h: 1.6,
+                  x: pos.x, y: pos.y, w: 3.8, h: 1.3,
                   fill: { color: 'F4F4F4' }, line: { color: ibm.blue, width: 1 }
                 });
-                pptSlide.addText(c.case_title || `Case ${idx + 1}`, { x: pos.x + 0.1, y: pos.y + 0.05, w: 3.6, h: 0.3, fontSize: 12, bold: true, color: ibm.blue, fontFace, wrap: true });
-                const lines = [
-                  `Use case: ${c.use_case || '{TO_FILL}'}`,
-                  `Industry/Region: ${c.industry || '{TO_FILL}'} / ${c.region || '{TO_FILL}'}`,
-                  `Outcome: ${c.outcome_kpi || '{TO_FILL}'} (${c.timeframe || '{TO_FILL}'})`,
-                  `Reference: ${c.reference_status || '{TO_FILL}'}`
-                ];
-                pptSlide.addText(lines.join('\n'), { x: pos.x + 0.1, y: pos.y + 0.4, w: 3.6, h: 1.1, fontSize: 10, color: ibm.gray, fontFace, wrap: true });
+                pptSlide.addText(c.case_title || `Case ${idx + 1}`, { x: pos.x + 0.1, y: pos.y + 0.05, w: 3.6, h: 0.3, fontSize: 11, bold: true, color: ibm.blue, fontFace, wrap: true });
+                
+                const lines = [];
+                if (c.use_case) lines.push(`Use case: ${c.use_case}`);
+                if (c.industry || c.region) lines.push(`Industry: ${c.industry || ''} ${c.region ? '/ ' + c.region : ''}`);
+                if (c.outcome_kpi) lines.push(`Outcome: ${c.outcome_kpi}`);
+                if (c.reference_status) lines.push(`Ref: ${c.reference_status}`);
+
+                pptSlide.addText(lines.join('\n'), { x: pos.x + 0.1, y: pos.y + 0.35, w: 3.6, h: 0.9, fontSize: 9, color: ibm.gray, fontFace, wrap: true });
               });
-              addEvidence(6.9);
+              addEvidence(5.4);
             };
 
             const renderL4 = () => {
               pptSlide.addText(slide.title || slide.content?.case_title || 'Case Study', {
-                x: 0.5, y: 0.5, w: 9.0, h: 0.7,
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
                 fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
-              const lines = [
-                `Use case: ${slide.content?.use_case || '{TO_FILL}'}`,
-                `Industry/Region: ${slide.content?.industry || '{TO_FILL}'} / ${slide.content?.region || '{TO_FILL}'}`,
-                `Challenge: ${slide.content?.challenge || '{TO_FILL}'}`,
-                `Approach: ${slide.content?.approach || '{TO_FILL}'}`,
-                `Capabilities/IP: ${slide.content?.capabilities || '{TO_FILL}'}`,
-                `Outcomes: ${slide.content?.outcome_kpi || '{TO_FILL}'} (${slide.content?.timeframe || '{TO_FILL}'})`,
-                `Reference: ${slide.content?.reference_status || '{TO_FILL}'}`
-              ];
+              
+              const lines = [];
+              if (slide.content?.use_case) lines.push(`Use case: ${slide.content.use_case}`);
+              if (slide.content?.industry || slide.content?.region) lines.push(`Industry/Region: ${slide.content.industry || ''} / ${slide.content.region || ''}`);
+              if (slide.content?.challenge) lines.push(`Challenge: ${slide.content.challenge}`);
+              if (slide.content?.approach) lines.push(`Approach: ${slide.content.approach}`);
+              if (slide.content?.capabilities) lines.push(`Capabilities: ${slide.content.capabilities}`);
+              if (slide.content?.outcome_kpi) lines.push(`Outcomes: ${slide.content.outcome_kpi} ${slide.content.timeframe ? '(' + slide.content.timeframe + ')' : ''}`);
+              if (slide.content?.reference_status) lines.push(`Reference: ${slide.content.reference_status}`);
+              
               pptSlide.addText(lines.join('\n\n'), {
-                x: 0.5, y: 1.4, w: 9.0, h: 5.0,
+                x: 0.5, y: 1.1, w: 9.0, h: 4.0,
                 fontSize: 12, color: ibm.gray, fontFace, wrap: true
               });
-              addEvidence(6.9);
+              addEvidence(5.2);
             };
 
             const renderL10 = () => {
               pptSlide.addText(slide.title || 'Q&A Bank', {
-                x: 0.5, y: 0.5, w: 9.0, h: 0.7,
+                x: 0.5, y: 0.3, w: 9.0, h: 0.6,
                 fontSize: 24, bold: true, color: ibm.blue, fontFace, align: 'left', wrap: true
               });
               const items = slide.content?.items || [];
-              pptSlide.addText(items.map((qa, idx) => ({
-                text: `${idx + 1}. ${qa.question || '{TO_FILL}'}\n${qa.answer || '{TO_FILL}'}`,
-                options: { bullet: false, fontSize: 12, color: ibm.gray, lineSpacing: 22 }
-              })), {
-                x: 0.5, y: 1.3, w: 9.0, h: 5.2, fontFace, align: 'left'
-              });
-              addEvidence(6.9);
+              const qaText = items.map((qa, idx) => {
+                 const q = qa.question ? `${idx + 1}. ${qa.question}` : '';
+                 const a = qa.answer ? qa.answer : '';
+                 return q && a ? `${q}\n${a}` : (q || a);
+              }).filter(t => t).join('\n\n');
+              
+              if (qaText) {
+                pptSlide.addText(qaText, {
+                    x: 0.5, y: 1.1, w: 9.0, h: 4.0, fontFace, align: 'left',
+                    fontSize: 11, color: ibm.gray
+                });
+              }
+              addEvidence(5.2);
             };
 
             switch (layout) {

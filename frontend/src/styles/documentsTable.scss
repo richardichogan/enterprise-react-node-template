@@ -1,0 +1,31 @@
+.doc-table {
+  /* Tighten row height */
+  tbody tr {
+    height: 40px;
+  }
+
+  th, td {
+    vertical-align: middle;
+  }
+
+  /* Carbon v11 uses cds-- classes */
+  .doc-type-select.cds--form-item {
+    margin: 0; /* remove default bottom margin */
+  }
+  .doc-type-select .cds--label {
+    display: none; /* ensure no label gap even if rendered */
+  }
+  .doc-type-select .cds--select,
+  .doc-type-select .cds--list-box {
+    margin: 0;
+  }
+  .doc-type-select .cds--select-input,
+  .doc-type-select .cds--list-box__field {
+    height: 32px; /* align with sm size controls */
+  }
+
+  /* Ensure the Type cell centers its content */
+  td.type-cell {
+    height: 40px;
+  }
+}

@@ -47,7 +47,7 @@ async function retryWithBackoff(fn, maxRetries = 3, delayMs = 65000) {
  * @returns {Promise<Array>} - Slide blueprint (array of slide plans)
  */
 export async function planStructure(input, options = {}) {
-  const { facts, sectionName, targetSlides, referenceExamples = '' } = input;
+  const { facts, sectionName, targetSlides, referenceExamples = '', requiredTopics = [], keyPoints = [] } = input;
   const { availableLayouts = ['L1_Executive_Header', 'L2_TwoColumn_Proof', 'L5_Metric_Tiles_3x1'] } = options;
 
   const systemPrompt = `You are a presentation structure planning agent.
@@ -72,10 +72,17 @@ RULES:
 5. Ensure ${targetSlides} slides total
 6. Match approved layouts only
 7. Consider narrative flow (opening → details → closing)
+8. CRITICAL: You MUST include slides for ALL "REQUIRED TOPICS" provided.
 
 If reference examples provided, match their structural patterns.`;
 
   const userPrompt = `Plan ${targetSlides} slides for: ${sectionName}
+
+REQUIRED TOPICS (Must be covered):
+${requiredTopics.length > 0 ? requiredTopics.map(t => `- ${t}`).join('\n') : 'No specific topic requirements'}
+
+KEY POINTS TO COVER:
+${keyPoints.length > 0 ? keyPoints.map(p => `- ${p}`).join('\n') : 'No specific key points'}
 
 EXTRACTED FACTS:
 ${JSON.stringify(facts, null, 2).substring(0, 15000)}
@@ -93,13 +100,6 @@ Return this exact structure:
       "topic": "Global Scale and Presence",
       "factsToInclude": ["scale[0]", "scale[1]", "scale[2]"],
       "rationale": "Opening slide showcasing breadth of capabilities"
-    },
-    {
-      "slideNumber": 2,
-      "layout": "L2_TwoColumn_Proof",
-      "topic": "Innovation Assets",
-      "factsToInclude": ["capabilities[0]", "capabilities[1]", "capabilities[2]", "outcomes[0]"],
-      "rationale": "Detail accelerators with proof points"
     }
   ]
 }`;

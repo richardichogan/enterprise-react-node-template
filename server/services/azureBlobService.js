@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { BlobServiceClient } from '@azure/storage-blob';
+import { enrichDocumentMetadata } from './metadataSchemaService.js';
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
 const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
@@ -24,13 +25,15 @@ function getBlobServiceClient() {
 }
 
 /**
- * Upload a file to Azure Blob Storage
+ * Upload a file to Azure Blob Storage with auto-detected metadata
  * @param {Buffer} fileBuffer - File content as buffer
  * @param {string} fileName - Original file name
  * @param {string} mimeType - File MIME type
- * @returns {Promise<Object>} Upload result with URL and metadata
+ * @param {string|null} userMetadataOverride - Optional user-provided document type (rfi_response, briefing_deck, etc.)
+ * @param {string} analyst - Analyst name (Gartner, Forrester, etc.)
+ * @returns {Promise<Object>} Upload result with URL, metadata, and detection info
  */
-export async function uploadDocument(fileBuffer, fileName, mimeType) {
+export async function uploadDocument(fileBuffer, fileName, mimeType, userMetadataOverride = null, analyst = 'Unknown') {
   const blobServiceClient = getBlobServiceClient();
   
   if (!blobServiceClient) {
@@ -38,6 +41,14 @@ export async function uploadDocument(fileBuffer, fileName, mimeType) {
   }
 
   try {
+    // Enrich metadata with auto-detection
+    const enrichedMetadata = await enrichDocumentMetadata(
+      fileBuffer, 
+      fileName, 
+      mimeType, 
+      userMetadataOverride
+    );
+
     // Get container client
     const containerClient = blobServiceClient.getContainerClient(containerName);
     
@@ -51,29 +62,57 @@ export async function uploadDocument(fileBuffer, fileName, mimeType) {
     // Get blob client
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
     
+    // Build blob metadata for Azure storage
+    const blobMetadata = {
+      originalName: enrichedMetadata.originalName,
+      uploadDate: enrichedMetadata.uploadDate,
+      size: enrichedMetadata.size.toString(),
+      documentType: enrichedMetadata.documentType,
+      confidence: enrichedMetadata.confidence,
+      priority: enrichedMetadata.priority,
+      sourceCategory: enrichedMetadata.sourceCategory,
+      isPrimaryContent: enrichedMetadata.isPrimaryContent.toString(),
+      retrievalWeight: enrichedMetadata.retrievalWeight.toString(),
+      detectionMethod: enrichedMetadata.detectionMethod,
+      analysis: enrichedMetadata.analysis,
+      analyst: analyst,
+      version: '1.0'
+    };
+    
     // Upload file
     const uploadResponse = await blockBlobClient.upload(fileBuffer, fileBuffer.length, {
       blobHTTPHeaders: {
         blobContentType: mimeType
       },
-      metadata: {
-        originalName: fileName,
-        uploadDate: new Date().toISOString(),
-        size: fileBuffer.length.toString()
-      }
+      metadata: blobMetadata
     });
 
     console.log(`✅ Uploaded document: ${fileName} → ${blobName}`);
+    console.log(`   Type: ${enrichedMetadata.documentType} (${enrichedMetadata.confidence})`);
+    console.log(`   Priority: ${enrichedMetadata.priority} | Weight: ${enrichedMetadata.retrievalWeight}`);
 
     return {
       success: true,
       blobName,
-      originalName: fileName,
+      originalName: enrichedMetadata.originalName,
       url: blockBlobClient.url,
-      size: fileBuffer.length,
+      size: enrichedMetadata.size,
       mimeType,
-      uploadDate: new Date().toISOString(),
-      etag: uploadResponse.etag
+      uploadDate: enrichedMetadata.uploadDate,
+      etag: uploadResponse.etag,
+      // Include metadata for frontend display
+      metadata: {
+        documentType: enrichedMetadata.documentType,
+        confidence: enrichedMetadata.confidence,
+        priority: enrichedMetadata.priority,
+        sourceCategory: enrichedMetadata.sourceCategory,
+        isPrimaryContent: enrichedMetadata.isPrimaryContent,
+        retrievalWeight: enrichedMetadata.retrievalWeight,
+        detectionMethod: enrichedMetadata.detectionMethod,
+        analysis: enrichedMetadata.analysis,
+        analyst,
+        version: '1.0'
+      }
     };
   } catch (error) {
     console.error('❌ Upload failed:', error.message);
@@ -105,7 +144,11 @@ export async function listDocuments() {
         mimeType: blob.properties.contentType,
         uploadDate: blob.metadata?.uploaddate || blob.properties.createdOn,
         lastModified: blob.properties.lastModified,
-        url: `${containerClient.url}/${blob.name}`
+        url: `${containerClient.url}/${blob.name}`,
+        analyst: blob.metadata?.analyst || 'Unknown',
+        metadata: {
+          documentType: blob.metadata?.documenttype || 'secondary_context'
+        }
       });
     }
 
@@ -205,6 +248,49 @@ export async function getDocumentMetadata(blobName) {
   } catch (error) {
     console.error('❌ Get metadata failed:', error.message);
     throw new Error(`Failed to get document metadata: ${error.message}`);
+  }
+}
+
+/**
+ * Update document metadata in Azure Blob Storage
+ * @param {string} blobName - Name of the blob
+ * @param {Object} metadata - Metadata to update (documentType, etc.)
+ * @returns {Promise<Object>} Update result
+ */
+export async function updateDocumentMetadata(blobName, metadata) {
+  const blobServiceClient = getBlobServiceClient();
+  
+  if (!blobServiceClient) {
+    throw new Error('Azure Blob Storage not configured. Check .env file.');
+  }
+
+  try {
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    
+    // Get existing metadata first
+    const properties = await blockBlobClient.getProperties();
+    const existingMetadata = properties.metadata || {};
+    
+    // Merge with new metadata
+    const updatedMetadata = {
+      ...existingMetadata,
+      ...metadata,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Update blob metadata
+    await blockBlobClient.setMetadata(updatedMetadata);
+    
+    console.log(`✅ Updated metadata for ${blobName}:`, metadata);
+    return {
+      success: true,
+      blobName,
+      metadata: updatedMetadata
+    };
+  } catch (error) {
+    console.error('❌ Update metadata failed:', error.message);
+    throw new Error(`Failed to update document metadata: ${error.message}`);
   }
 }
 

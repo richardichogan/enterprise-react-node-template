@@ -1,0 +1,314 @@
+.strategic-context {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 8px;
+
+  .context-header {
+    margin-bottom: 0;
+    display: none;
+  }
+
+  .context-section {
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-items: start;
+
+    &:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      grid-column: 1 / -1;
+
+      h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .section-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        font-size: 10px;
+        font-weight: 600;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+
+        &.required {
+          background: #fff3e0;
+          color: #e65100;
+        }
+      }
+    }
+
+    .section-description {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Key Messages Grid */
+  .key-messages-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+    grid-column: 1 / -1;
+
+    .message-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      label {
+        font-size: 11px;
+        font-weight: 500;
+        color: #666;
+      }
+
+      textarea {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 12px;
+        padding: 8px;
+        border: 1px solid #d0d0d0;
+        border-radius: 4px;
+        resize: none;
+        min-height: 50px;
+        max-height: 80px;
+        color: #1a1a1a;
+        line-height: 1.4;
+
+        &:focus {
+          outline: none;
+          border-color: #0078d4;
+          box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+        }
+
+        &::placeholder {
+          color: #999;
+        }
+      }
+    }
+  }
+
+  .message-count {
+    font-size: 8px;
+    color: #999;
+    text-align: right;
+    grid-column: 1 / -1;
+    margin-top: -1px;
+  }
+
+  /* Positioning Focus Input */
+  .positioning-input-group,
+  .taboo-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    grid-column: 1 / -1;
+
+    input {
+      flex: 1;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      padding: 8px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      color: #1a1a1a;
+      min-height: 32px;
+
+      &:focus {
+        outline: none;
+        border-color: #0078d4;
+        box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+      }
+
+      &::placeholder {
+        color: #999;
+      }
+    }
+
+    .btn-add {
+      padding: 8px 12px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+      min-height: 32px;
+
+      &:hover {
+        background: #106ebe;
+      }
+
+      &:active {
+        background: #0d47a1;
+      }
+    }
+  }
+
+  /* Tag List */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    grid-column: 1 / -1;
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+
+      &.taboo-tag {
+        background: #fce4ec;
+        color: #c2185b;
+      }
+
+      .tag-remove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
+  /* Tone Grid */
+  .tone-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 0;
+    grid-column: 1 / -1;
+
+    .tone-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 4px 6px;
+      border: 1px solid #d0d0d0;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      input[type='radio'] {
+        margin-top: 2px;
+        cursor: pointer;
+        accent-color: #0078d4;
+        min-width: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      .tone-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: #333;
+        line-height: 1.3;
+      }
+
+      &:hover {
+        border-color: #0078d4;
+        background: #f8f8f8;
+      }
+
+      input[type='radio']:checked ~ .tone-label {
+        color: #0078d4;
+        font-weight: 600;
+      }
+    }
+  }
+
+  /* Tone Display (read-only) */
+  .tone-display {
+    grid-column: 1 / -1;
+    padding: 4px 8px;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 3px;
+
+    .tone-value {
+      font-size: 11px;
+      font-weight: 600;
+      color: #1565c0;
+    }
+  }
+
+  /* Completion Status - HIDDEN */
+  .completion-status {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .strategic-context {
+    .context-section {
+      grid-template-columns: 1fr;
+    }
+
+    .tone-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .strategic-context {
+    .tone-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .positioning-input-group,
+    .taboo-input-group {
+      flex-direction: column;
+
+      input,
+      .btn-add {
+        width: 100%;
+      }
+    }
+  }
+}

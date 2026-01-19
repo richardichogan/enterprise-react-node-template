@@ -83,7 +83,7 @@ app.get('/healthz', (_req, res) => {
 
 // Import services
 import { generateRFIResponse, analyzeResponseScore, generatePresentationOutline } from './services/icaService.js';
-import { uploadDocument, listDocuments, downloadDocument, deleteDocument, getDocumentMetadata } from './services/azureBlobService.js';
+import { uploadDocument, listDocuments, downloadDocument, deleteDocument, getDocumentMetadata, updateDocumentMetadata } from './services/azureBlobService.js';
 
 // RFI Generation Endpoint
 app.post('/api/rfi/generate-response', async (req, res) => {
@@ -98,7 +98,9 @@ app.post('/api/rfi/generate-response', async (req, res) => {
       characterLimit,
       answerType,
       useDocumentCollection,
-      documents
+      documents,
+      strategicContext,
+      projectMetadata
     } = req.body;
     
     if (!question) {
@@ -130,6 +132,9 @@ app.post('/api/rfi/generate-response', async (req, res) => {
     console.log('� Answer type:', answerType || 'Single');
     console.log('📄 Documents available for RAG:', documents?.length || 0);
     console.log('👤 Analyst framework:', analyst || 'generic');
+    console.log('🏷️  Strategic context provided:', strategicContext ? 'yes' : 'no');
+    console.log('📊 Project metadata entries:', Object.keys(projectMetadata || {}).length || 0);
+    
     // Use Azure AI Search RAG by default
     const response = await generateRFIResponse(
       question, 
@@ -140,11 +145,14 @@ app.post('/api/rfi/generate-response', async (req, res) => {
       documents, // explicit list of document names to consider
       null, // aiModel - using Azure OpenAI deployment from env
       analyst, // analyst framework for prompt shaping
-      answerType // answer type (Single or Multi-Section)
+      answerType, // answer type (Single or Multi-Section)
+      strategicContext || {}, // strategic context for metadata filtering
+      projectMetadata || {} // project document metadata for filtering
     );
     console.log('📤 Response from generateRFIResponse:', response?.model || 'unknown');
     console.log('📄 Used documents in response:', response?.usedDocuments || 'none');
-    console.log('🏷️  Used document collection:', response?.usedDocumentCollection || false);
+    console.log('🏷️  Metadata filter applied:', response?.metadataFilterApplied ? JSON.stringify(response.metadataFilterApplied) : 'none');
+    console.log('🎯 Strategic context applied:', response?.strategicContextApplied || false);
     res.json(response);
   } catch (error) {
     console.error('❌ Error in RFI endpoint:', error.message);
@@ -264,6 +272,26 @@ app.post('/api/presentations/create-blank', async (req, res) => {
   }
 });
 
+// Analyze briefing structure endpoint
+app.post('/api/presentations/analyze-structure', async (req, res) => {
+  try {
+    const { briefingPack, briefingInstructions, analystFirm } = req.body;
+    
+    if (!briefingPack || !briefingInstructions) {
+      return res.status(400).json({ error: 'Briefing pack and instructions required' });
+    }
+
+    // Import dynamically to ensure service is loaded
+    const { analyzeBriefingStructure } = await import('./services/briefingDeckService.js');
+    
+    const structure = await analyzeBriefingStructure(briefingPack, briefingInstructions, analystFirm);
+    res.json(structure);
+  } catch (error) {
+    console.error('Error analyzing structure:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Generate Briefing Deck from Briefing Pack
 // Generate Briefing Deck with Server-Sent Events for progress updates
 app.post('/api/presentations/generate-briefing-deck-stream', async (req, res) => {
@@ -273,7 +301,8 @@ app.post('/api/presentations/generate-briefing-deck-stream', async (req, res) =>
       briefingInstructions, 
       vendorResponse = '', 
       analystFirm = 'Gartner',
-      model 
+      model,
+      sectionConfig // New parameter
     } = req.body;
     
     if (!briefingPack || !briefingInstructions) {
@@ -306,7 +335,8 @@ app.post('/api/presentations/generate-briefing-deck-stream', async (req, res) =>
         vendorResponse,
         analystFirm,
         model,
-        onProgress
+        onProgress,
+        sectionConfig // Pass to service
       );
       finalResult = result;
     } catch (error) {
@@ -485,10 +515,12 @@ app.post('/api/documents/upload', (req, res, next) => {
     }
 
     const { buffer, originalname, mimetype } = req.file;
+    const analyst = req.body.analyst || 'Unknown';
+    const userMetadataOverride = req.body.documentType || null;
     
-    console.log(`📤 Uploading document: ${originalname} (${mimetype}, ${buffer.length} bytes)`);
+    console.log(`📤 Uploading document: ${originalname} (${mimetype}, ${buffer.length} bytes) for analyst: ${analyst}`);
     
-    const result = await uploadDocument(buffer, originalname, mimetype);
+    const result = await uploadDocument(buffer, originalname, mimetype, userMetadataOverride, analyst);
     console.log(`✅ Upload successful: ${originalname}`);
     
     res.json({
@@ -661,7 +693,28 @@ app.get('/api/documents/download/:blobName', async (req, res) => {
     res.status(500).json({ error: 'Failed to extract document', details: error.message });
   }
 });
-
+// Update document metadata
+app.put('/api/documents/:fileName/metadata', async (req, res) => {
+  try {
+    const { fileName } = req.params;
+    const { documentType } = req.body;
+    
+    if (!documentType) {
+      return res.status(400).json({ error: 'documentType is required' });
+    }
+    
+    console.log(`📝 Updating metadata for ${fileName}: documentType=${documentType}`);
+    
+    const result = await updateDocumentMetadata(fileName, {
+      documenttype: documentType  // Azure metadata keys must be lowercase
+    });
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Update metadata error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 // Delete document
 app.delete('/api/documents/:blobName', async (req, res) => {
   try {

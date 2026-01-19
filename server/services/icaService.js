@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { retrieveDocumentContext } from './documentProcessor.js';
+import { buildMetadataFilter } from './metadataSchemaService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -173,10 +174,22 @@ function checkSectionLimits(response, characterLimit, answerType) {
 /**
  * Generate RFI response using IBM ICA Chat Completions API
  * Supports both Azure Blob Storage RAG and ICA Document Collection
+ * @param {string} question - The RFI question to answer
+ * @param {string} context - Additional context (legacy)
+ * @param {boolean} useDocumentCollection - Use ICA collection instead of blob
+ * @param {number} characterLimit - Max response length
+ * @param {boolean} useAzureBlob - Use Azure Blob Storage RAG
+ * @param {array} documentNamesParam - Document names to retrieve
+ * @param {string} aiModel - AI model to use
+ * @param {string} analyst - Analyst framework (Gartner, Forrester, IDC)
+ * @param {string} answerType - Answer structure (Single, Multi-Section)
+ * @param {object} strategicContext - Strategic context data (keyMessages, positioningFocus, toneStyle, tabooTopics)
+ * @param {object} projectMetadata - Project document metadata for filtering
  */
-export async function generateRFIResponse(question, context = '', useDocumentCollection = false, characterLimit = null, useAzureBlob = true, documentNamesParam = [], aiModel = null, analyst = '', answerType = 'Single') {
+export async function generateRFIResponse(question, context = '', useDocumentCollection = false, characterLimit = null, useAzureBlob = true, documentNamesParam = [], aiModel = null, analyst = '', answerType = 'Single', strategicContext = {}, projectMetadata = {}) {
   try {
     let groundingContext = '';
+    let metadataFilterApplied = null;
     let usedDocumentCollection = false;
     let usedDocuments = [];
     
@@ -195,15 +208,48 @@ export async function generateRFIResponse(question, context = '', useDocumentCol
       if (documentNames.length > 0) {
         console.log('📚 [STAGE 2/6] Extracting text from documents...');
         console.log('   Processing:', documentNames.length, 'document(s)');
+        
+        // Build metadata filter based on strategic context and positioning focus
+        // Prioritize documents marked as primary content for fact-sourcing
+        let metadataFilter = null;
+        if (strategicContext && Object.keys(strategicContext).length > 0) {
+          console.log('🏷️  [STAGE 2a/6] Building metadata filters from strategic context');
+          
+          // For Fact Sources (RFI Responses and Supporting Documents), prioritize primary content
+          if (strategicContext.positioningFocus && strategicContext.positioningFocus.length > 0) {
+            // Map positioning focus to document categories
+            const categoryMapping = {
+              'Innovation': 'exemplar_submission',
+              'Reliability': 'briefing_deck',
+              'Security': 'fact_source',
+              'Cost-effectiveness': 'case_study',
+              'Customer-Focused': 'welcome_pack',
+              'Technical': 'rfi_response'
+            };
+            
+            // For now, prioritize primary content across all categories
+            metadataFilter = {
+              primaryOnly: true,
+              priority: 'HIGH'  // Minimum priority threshold
+            };
+            
+            console.log(`   Filter: ${JSON.stringify(metadataFilter)}`);
+            console.log(`   Positioning areas: ${strategicContext.positioningFocus.join(', ')}`);
+            metadataFilterApplied = metadataFilter;
+          }
+        }
+        
         // retrieveDocumentContext will:
         // 1. Load ALL provided documents
-        // 2. Extract and chunk text from each
-        // 3. Score all chunks against the question
-        // 4. Return top-N most relevant chunks regardless of source document
-        // 5. Track which documents contributed to the final context
-        const result = await retrieveDocumentContext(documentNames, question, 5);
+        // 2. Apply metadata filters if provided
+        // 3. Extract and chunk text from each
+        // 4. Score all chunks against the question
+        // 5. Return top-N most relevant chunks regardless of source document
+        // 6. Track which documents contributed to the final context
+        const result = await retrieveDocumentContext(documentNames, question, 5, metadataFilter, projectMetadata);
         groundingContext = result.context;
         usedDocuments = result.usedDocuments;  // Array of document names that contributed chunks
+        metadataFilterApplied = result.metadataApplied;
         if (groundingContext) {
           console.log('🔍 [STAGE 3/6] Relevance scoring complete');
           console.log(`✅ Retrieved context from ${usedDocuments.length} document(s): ${usedDocuments.join(', ')}`);
@@ -501,7 +547,9 @@ Provide ONLY the condensed response, nothing else.`;
       model: AZURE_OPENAI_DEPLOYMENT,
       tokensUsed,
       characterCount: generatedResponse.length,
-      characterLimit
+      characterLimit,
+      metadataFilterApplied: metadataFilterApplied,
+      strategicContextApplied: strategicContext && Object.keys(strategicContext).length > 0
     };
     
   } catch (error) {
@@ -517,6 +565,8 @@ Provide ONLY the condensed response, nothing else.`;
       usedDocuments: [],
       collectionName: null,
       model: 'development-mock',
+      metadataFilterApplied: metadataFilterApplied,
+      strategicContextApplied: strategicContext && Object.keys(strategicContext).length > 0,
       tokensUsed: 0,
       isDevelopment: true,
       originalError: errorMsg

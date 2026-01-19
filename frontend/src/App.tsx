@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './App.scss'
+import './styles/documentsTable.scss'
+import StrategicContext, { StrategicContextData } from './StrategicContext'
 import { 
   Tabs, 
   TabList, 
@@ -12,7 +14,9 @@ import {
   Button,
   Select,
   SelectItem,
-  InlineNotification
+  InlineNotification,
+  RadioButtonGroup,
+  RadioButton
 } from '@carbon/react'
 import { TrashCan } from '@carbon/icons-react'
 
@@ -33,6 +37,16 @@ interface UploadedDocument {
   size: number
   uploadDate: string
   url: string
+  metadata?: {
+    documentType: string
+    confidence: 'high' | 'medium' | 'low'
+    priority: string
+    sourceCategory: string
+    isPrimaryContent: boolean
+    retrievalWeight: number
+    detectionMethod: string
+    analysis: string
+  }
 }
 
 interface RFIResponse {
@@ -109,6 +123,8 @@ export default function App() {
   const [briefingAnalystFirm, setBriefingAnalystFirm] = useState('Gartner')
   const [briefingModel, setBriefingModel] = useState('global/gpt-4o')
   const [deckStructure, setDeckStructure] = useState<any>(null)
+  const [analyzedStructure, setAnalyzedStructure] = useState<any>(null)
+  const [sectionConfig, setSectionConfig] = useState<Record<string, 'content' | 'break' | 'skip'>>({})
   const [generatingDeck, setGeneratingDeck] = useState(false)
 
   // Upload state
@@ -116,6 +132,16 @@ export default function App() {
   const [uploading, setUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState('')
   const [projectDocuments, setProjectDocuments] = useState<UploadedDocument[]>([])
+  const [detectedMetadata, setDetectedMetadata] = useState<any>(null)
+  const [metadataOverride, setMetadataOverride] = useState<string | null>(null)
+  const [validationPassed, setValidationPassed] = useState(false)
+  const [strategicContext, setStrategicContext] = useState<StrategicContextData>({
+    keyMessages: [],
+    positioningFocus: [],
+    toneStyle: '',
+    tabooTopics: [],
+    isComplete: false,
+  })
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -172,8 +198,17 @@ export default function App() {
             name: doc.blobName || doc.name,
             size: doc.size ?? 0,
             uploadDate: doc.uploadDate || doc.createdOn || new Date().toISOString(),
-            url: doc.url || doc.blobUrl || ''
+            url: doc.url || doc.blobUrl || '',
+            analyst: doc.analyst || 'Unknown',
+            metadata: doc.metadata || { documentType: 'secondary_context' }
           }))
+          // Sort by analyst (current project analyst first), then by date descending
+          docs.sort((a, b) => {
+            if (a.analyst === analyst && b.analyst !== analyst) return -1
+            if (a.analyst !== analyst && b.analyst === analyst) return 1
+            if (a.analyst !== b.analyst) return a.analyst.localeCompare(b.analyst)
+            return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+          })
           setAvailableDocuments(docs)
         }
       } catch (err) {
@@ -304,10 +339,13 @@ export default function App() {
     setUploadStatus('Uploading to server...')
     setLoading(true)
     setError(null)
+    setDetectedMetadata(null)
+    setMetadataOverride(null)
 
     try {
       const formData = new FormData()
       formData.append('document', file)
+      formData.append('analyst', analyst || 'Unknown')
 
       const xhr = new XMLHttpRequest()
 
@@ -316,7 +354,7 @@ export default function App() {
           const percentComplete = (e.loaded / e.total) * 100
           setUploadProgress(Math.round(percentComplete))
           if (percentComplete >= 100) {
-            setUploadStatus('Processing... Uploading to Azure Blob Storage')
+            setUploadStatus('Processing... Detecting document type')
           }
         }
       })
@@ -326,17 +364,31 @@ export default function App() {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const response = JSON.parse(xhr.responseText)
+              
+              // Capture metadata from response
+              if (response.document.metadata) {
+                setDetectedMetadata(response.document.metadata)
+                setUploadStatus(`Detected: ${response.document.metadata.documentType} (${response.document.metadata.confidence})`)
+              }
+              
               const doc: UploadedDocument = {
                 name: response.document.blobName,
                 size: response.document.size,
                 uploadDate: response.document.uploadDate,
-                url: response.document.url
+                url: response.document.url,
+                analyst: analyst || 'Unknown',
+                metadata: response.document.metadata
               }
               setProjectDocuments(prev => [...prev, doc])
               updateCurrentProject({
                 documents: [...projectDocuments, doc]
               })
               setUploadStatus('Upload complete!')
+              
+              // Keep UI visible for 3 seconds to show metadata
+              setTimeout(() => {
+                setDetectedMetadata(null)
+              }, 3000)
               resolve()
             } catch (e) {
               reject(new Error('Invalid response from server'))
@@ -368,7 +420,9 @@ export default function App() {
       setUploading(false)
       setTimeout(() => {
         setUploadProgress(0)
-        setUploadStatus('')
+        if (!detectedMetadata) {
+          setUploadStatus('')
+        }
       }, 2000)
     }
   }
@@ -424,7 +478,14 @@ export default function App() {
           characterLimit: characterLimit ? parseInt(characterLimit.toString()) : null,
           answerType,
           useDocumentCollection: true,
-          documents: availableDocuments.map(doc => doc.name)  // Send ALL documents for RAG search
+          documents: availableDocuments.map(doc => doc.name),  // Send ALL documents for RAG search
+          documentMetadata: availableDocuments.reduce((acc, doc) => {
+            acc[doc.name] = {
+              analyst: doc.analyst || 'Unknown',
+              documentType: doc.metadata?.documentType || 'secondary_context'
+            }
+            return acc
+          }, {} as Record<string, any>)  // Send analyst + type for AI filtering priority
         })
       })
       if (!response.ok) throw new Error(`API error: ${response.statusText}`)
@@ -441,9 +502,104 @@ export default function App() {
     }
   }
 
+  // Analyze Briefing Structure
+  const analyzeBriefingStructure = async () => {
+    // Auto-detect documents based on metadata if user hasn't selected manually
+    // Fallback provided for manual overrides
+    const briefingPackContent = await getBriefingPackContent();
+    const briefingInstructionsContent = await getBriefingInstructionsContent();
+
+    if (!briefingPackContent || !briefingInstructionsContent) {
+      setError('Briefing pack and instructions are required. Please ensure documents are uploaded to the project.')
+      return
+    }
+
+    setGeneratingDeck(true)
+    setError(null)
+    setLoadingStage('Analyzing briefing structure...')
+
+    try {
+      const response = await fetch(`${apiUrl}/api/presentations/analyze-structure`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          briefingPack: briefingPackContent,
+          briefingInstructions: briefingInstructionsContent,
+          analystFirm: briefingAnalystFirm
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to analyze structure: ${response.statusText}`)
+      }
+
+      const structure = await response.json()
+      setAnalyzedStructure(structure)
+      
+      // Initialize section config - default all to 'content'
+      const initialConfig: Record<string, 'content' | 'break' | 'skip'> = {}
+      if (structure.sections && Array.isArray(structure.sections)) {
+        structure.sections.forEach((section: any) => {
+          // Heuristic: Default Q&A to 'break' (header only)
+          const isQA = section.name?.toLowerCase().includes('q&a') || section.name?.toLowerCase().includes('questions');
+          initialConfig[section.name] = isQA ? 'break' : 'content';
+        })
+      }
+      setSectionConfig(initialConfig)
+      
+      setLoadingStage('✅ Structure analyzed successfully! Please review sections below.')
+      setTimeout(() => setLoadingStage(''), 3000)
+    } catch (err) {
+      console.error('Structure analysis error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to analyze structure')
+    } finally {
+      setGeneratingDeck(false)
+    }
+  }
+
+  // Helper to get content for briefing pack (either manual or auto-detected)
+  const getBriefingPackContent = async () => {
+    if (briefingPack) return briefingPack;
+    
+    // Auto-detect from project documents
+    // Priority: metadata.documentType === 'briefing_pack' -> filename includes 'briefing'
+    const doc = availableDocuments.find(d => 
+      d.metadata?.documentType === 'briefing_deck' || 
+      d.name.toLowerCase().includes('briefing')
+    );
+    
+    if (doc) {
+      const resp = await fetch(`${apiUrl}/api/documents/download/${doc.name}`);
+      if (resp.ok) return await resp.text();
+    }
+    return null;
+  }
+
+  const getBriefingInstructionsContent = async () => {
+    if (briefingInstructions) return briefingInstructions;
+    
+    // Auto-detect
+    // Priority: metadata.documentType === 'primary_signposts' -> filename includes 'welcome' or 'instructions'
+    const doc = availableDocuments.find(d => 
+      d.metadata?.documentType === 'welcome_pack' || 
+      d.metadata?.documentType === 'primary_signposts' ||
+      d.name.toLowerCase().includes('welcome') ||
+      d.name.toLowerCase().includes('instruction')
+    );
+    
+    if (doc) {
+      const resp = await fetch(`${apiUrl}/api/documents/download/${doc.name}`);
+      if (resp.ok) return await resp.text();
+    }
+    return null;
+  }
+
   // Generate Briefing Deck Structure
   const generateBriefingDeck = async () => {
-    if (!briefingPack || !briefingInstructions) {
+    const briefingPackContent = await getBriefingPackContent();
+    const briefingInstructionsContent = await getBriefingInstructionsContent();
+
+    if (!briefingPackContent || !briefingInstructionsContent) {
       setError('Briefing pack and instructions are required')
       return
     }
@@ -457,11 +613,12 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          briefingPack,
-          briefingInstructions,
+          briefingPack: briefingPackContent,
+          briefingInstructions: briefingInstructionsContent,
           vendorResponse: briefingResponse,
           analystFirm: briefingAnalystFirm,
-          model: briefingModel
+          model: briefingModel,
+          sectionConfig // Pass user configuration
         })
       })
 
@@ -682,121 +839,190 @@ export default function App() {
                     <p>Create or select a project first</p>
                   </div>
                 ) : (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-                      <Select
-                        labelText="Analyst"
-                        value={analyst}
-                        onChange={(e) => setAnalyst(e.target.value)}
-                      >
-                        <SelectItem value="" text="Select analyst..." />
-                        {ANALYSTS.map(a => (
-                          <SelectItem key={a} value={a} text={a} />
-                        ))}
-                      </Select>
+                  <Tabs>
+                    <TabList aria-label="Project setup sections">
+                      <Tab>Project Info</Tab>
+                      <Tab>Documents</Tab>
+                    </TabList>
 
-                      <TextInput
-                        labelText="Category"
-                        placeholder="e.g., MQ Cloud ERP"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                      />
-
-                      <TextInput
-                        labelText="Technology Focus"
-                        placeholder="e.g., D365"
-                        value={technologyFocus}
-                        onChange={(e) => setTechnologyFocus(e.target.value)}
-                      />
-
-                      <TextInput
-                        labelText="Partner"
-                        placeholder="e.g., Microsoft"
-                        value={partner}
-                        onChange={(e) => setPartner(e.target.value)}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '2rem' }}>
-                      <Button 
-                        onClick={saveProjectSetup} 
-                        disabled={isSaving}
-                      >
-                        {isSaving ? 'Saving...' : 'Save Project Setup'}
-                      </Button>
-                      {saveSuccess && (
-                        <small style={{ color: '#24a148', fontWeight: 'bold' }}>✓ Saved successfully</small>
-                      )}
-                    </div>
-
-                    <h3>Project Documents</h3>
-                    {availableDocuments.length > 0 && (
-                      <div className="existing-docs">
-                        <h4 style={{ margin: '0 0 0.5rem 0' }}>Attach existing documents</h4>
-                        <div className="documents-list" style={{ gap: '0.5rem' }}>
-                          {availableDocuments.map(doc => {
-                            const checked = projectDocuments.some(d => d.name === doc.name)
-                            return (
-                              <label key={doc.name} className="document-item" style={{ alignItems: 'flex-start', cursor: 'pointer' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={(e) => toggleExistingDocument(doc, e.target.checked)}
-                                  style={{ marginRight: '0.75rem', marginTop: '0.2rem' }}
-                                />
-                                <div className="doc-info">
-                                  <strong>{doc.name}</strong>
-                                  <small>{(doc.size / (1024 * 1024)).toFixed(2)} MB | {new Date(doc.uploadDate).toLocaleDateString()}</small>
-                                </div>
-                              </label>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="upload-section">
-                      <input
-                        type="file"
-                        accept=".pdf,.docx,.pptx"
-                        onChange={uploadDocument}
-                        disabled={uploading}
-                        style={{ marginTop: '0.5rem' }}
-                      />
-                      {uploading && (
-                        <div className="upload-progress">
-                          <div className="progress-bar">
-                            <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
-                          </div>
-                          <small>{uploadStatus} {uploadProgress < 100 ? `${uploadProgress}%` : ''}</small>
-                        </div>
-                      )}
-                    </div>
-
-                    {projectDocuments.length === 0 ? (
-                      <div className="empty-state" style={{ marginTop: '1rem' }}>
-                        <p>No documents uploaded for this project</p>
-                      </div>
-                    ) : (
-                      <div className="documents-list" style={{ marginTop: '1.5rem' }}>
-                        {projectDocuments.map(doc => (
-                          <div key={doc.name} className="document-item">
-                            <div className="doc-info">
-                              <strong>{doc.name}</strong>
-                              <small>{(doc.size / (1024 * 1024)).toFixed(2)} MB | {new Date(doc.uploadDate).toLocaleDateString()}</small>
-                            </div>
-                            <Button
-                              kind="danger--ghost"
-                              size="sm"
-                              onClick={() => deleteDocument(doc.name)}
+                    <TabPanels>
+                      {/* Project Info Tab */}
+                      <TabPanel>
+                        <div style={{ padding: '1rem 0' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+                            <Select
+                              labelText="Analyst"
+                              value={analyst}
+                              onChange={(e) => setAnalyst(e.target.value)}
                             >
-                              <TrashCan size={16} />
-                            </Button>
+                              <SelectItem value="" text="Select analyst..." />
+                              {ANALYSTS.map(a => (
+                                <SelectItem key={a} value={a} text={a} />
+                              ))}
+                            </Select>
+
+                            <TextInput
+                              labelText="Category"
+                              placeholder="e.g., MQ Cloud ERP"
+                              value={category}
+                              onChange={(e) => setCategory(e.target.value)}
+                            />
+
+                            <TextInput
+                              labelText="Technology Focus"
+                              placeholder="e.g., D365"
+                              value={technologyFocus}
+                              onChange={(e) => setTechnologyFocus(e.target.value)}
+                            />
+
+                            <TextInput
+                              labelText="Partner"
+                              placeholder="e.g., Microsoft"
+                              value={partner}
+                              onChange={(e) => setPartner(e.target.value)}
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
+
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <Button 
+                              onClick={saveProjectSetup} 
+                              disabled={isSaving}
+                            >
+                              {isSaving ? 'Saving...' : 'Save Project Setup'}
+                            </Button>
+                            {saveSuccess && (
+                              <small style={{ color: '#24a148', fontWeight: 'bold' }}>✓ Saved successfully</small>
+                            )}
+                          </div>
+                        </div>
+                      </TabPanel>
+
+                      {/* Documents Tab */}
+                      <TabPanel>
+                        <div style={{ padding: '1rem 0' }}>
+                          <h3 style={{ marginBottom: '1rem' }}>Upload New Document</h3>
+                          <div className="upload-section">
+                            <input
+                              type="file"
+                              accept=".pdf,.docx,.pptx"
+                              onChange={uploadDocument}
+                              disabled={uploading}
+                            />
+                            {uploading && (
+                              <div className="upload-progress">
+                                <div className="progress-bar">
+                                  <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
+                                </div>
+                                <small>{uploadStatus} {uploadProgress < 100 ? `${uploadProgress}%` : ''}</small>
+                              </div>
+                            )}
+                          </div>
+
+                          <h3 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Available Documents ({availableDocuments.length})</h3>
+                          {availableDocuments.length === 0 ? (
+                            <div className="empty-state">
+                              <p>No documents in Azure storage</p>
+                            </div>
+                          ) : (
+                            <table className="doc-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '35%' }}>Document Name</th>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '12%' }}>Analyst</th>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '13%' }}>Upload Date</th>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '10%' }}>Size</th>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '22%' }}>Type</th>
+                                  <th style={{ padding: '0.5rem 0.5rem', width: '8%' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {availableDocuments.map(doc => (
+                                  <tr key={doc.name} style={{ borderBottom: '1px solid #e0e0e0', backgroundColor: doc.analyst === analyst ? '#e8f5e9' : 'transparent' }}>
+                                    <td style={{ padding: '0.5rem 0.5rem' }}>
+                                      <strong style={{ fontSize: '0.875rem' }}>{doc.name}</strong>
+                                    </td>
+                                    <td style={{ padding: '0.5rem 0.5rem' }}>
+                                      <span style={{ 
+                                        padding: '0.25rem 0.5rem',
+                                        backgroundColor: doc.analyst === analyst ? '#4caf50' : '#9e9e9e',
+                                        color: 'white',
+                                        borderRadius: '3px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 'bold'
+                                      }}>
+                                        {doc.analyst}
+                                      </span>
+                                    </td>
+                                    <td style={{ padding: '0.5rem 0.5rem', fontSize: '0.875rem' }}>
+                                      {new Date(doc.uploadDate).toLocaleDateString()}
+                                    </td>
+                                    <td style={{ padding: '0.5rem 0.5rem' }}>
+                                      {(doc.size / (1024 * 1024)).toFixed(2)} MB
+                                    </td>
+                                    <td className="type-cell" style={{ padding: '0.5rem 0.5rem', verticalAlign: 'middle', height: '40px' }}>
+                                      <Select
+                                        id={`doc-type-${doc.name}`}
+                                        labelText=""
+                                        hideLabel
+                                        className="doc-type-select"
+                                        value={doc.metadata?.documentType || 'secondary_context'}
+                                          onChange={async (e) => {
+                                            const newType = e.target.value
+                                            // Update local state immediately
+                                            const updated = availableDocuments.map(d => 
+                                              d.name === doc.name 
+                                                ? { ...d, metadata: { ...d.metadata, documentType: newType } as any }
+                                                : d
+                                            )
+                                            setAvailableDocuments(updated)
+                                            
+                                            // Save to backend
+                                            try {
+                                              const response = await fetch(`${apiUrl}/api/documents/${encodeURIComponent(doc.name)}/metadata`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ documentType: newType })
+                                              })
+                                              if (!response.ok) {
+                                                console.error('Failed to save document type')
+                                              }
+                                            } catch (err) {
+                                              console.error('Error saving document type:', err)
+                                            }
+                                          }}
+                                          size="sm"
+                                        >
+                                          <SelectItem value="rfi_response" text="RFI Response" />
+                                          <SelectItem value="briefing_deck" text="Briefing Deck" />
+                                          <SelectItem value="welcome_pack" text="Welcome Pack" />
+                                          <SelectItem value="exemplar_submission" text="Exemplar Submission" />
+                                          <SelectItem value="fact_source" text="Fact Source" />
+                                          <SelectItem value="secondary_context" text="Secondary Context" />
+                                          <SelectItem value="unknown" text="Unknown" />
+                                        </Select>
+                                    </td>
+                                    <td style={{ padding: '0.5rem 0.5rem', textAlign: 'center' }}>
+                                      <Button
+                                        kind="danger--ghost"
+                                        size="sm"
+                                        onClick={() => deleteDocument(doc.name)}
+                                        hasIconOnly
+                                        iconDescription="Delete"
+                                      >
+                                        <TrashCan size={16} />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </TabPanel>
+
+                      
+                    </TabPanels>
+                  </Tabs>
                 )}
               </div>
             </TabPanel>
@@ -1127,281 +1353,107 @@ export default function App() {
                         onChange={(e) => setPresentationTitle(e.target.value)}
                       />
                     </div>
-
-                    <div className="form-section">
-                      <label htmlFor="pres-subtitle">Subtitle (Optional)</label>
-                      <TextInput
-                        id="pres-subtitle"
-                        placeholder="e.g., Gartner Magic Quadrant Response"
-                        value={presentationSubtitle}
-                        onChange={(e) => setPresentationSubtitle(e.target.value)}
-                      />
-                    </div>
-
-                    <Button
-                      kind="primary"
-                      onClick={async () => {
-                        if (!presentationTitle) {
-                          setError('Title is required')
-                          return
-                        }
-
-                        setLoading(true)
-                        setError(null)
-                        setLoadingStage('Creating PowerPoint presentation...')
-
-                        try {
-                          const response = await fetch(`${apiUrl}/api/presentations/create-blank`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              title: presentationTitle,
-                              subtitle: presentationSubtitle || undefined
-                            })
-                          })
-
-                          if (!response.ok) {
-                            throw new Error(`Failed to create presentation: ${response.statusText}`)
-                          }
-
-                          // Download the file
-                          const blob = await response.blob()
-                          const url = window.URL.createObjectURL(blob)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = `${presentationTitle.replace(/[^a-z0-9]/gi, '_')}.pptx`
-                          document.body.appendChild(a)
-                          a.click()
-                          document.body.removeChild(a)
-                          window.URL.revokeObjectURL(url)
-
-                          setLoadingStage('✅ Presentation downloaded successfully!')
-                          setTimeout(() => setLoadingStage(''), 3000)
-                        } catch (err) {
-                          console.error('Presentation error:', err)
-                          setError(err instanceof Error ? err.message : 'Failed to create presentation')
-                        } finally {
-                          setLoading(false)
-                        }
-                      }}
-                      disabled={loading || !presentationTitle}
-                    >
-                      {loading ? 'Creating...' : 'Create Blank Presentation'}
-                    </Button>
                   </>
                 )}
 
                 {/* Briefing Deck Builder Mode */}
                 {presentationMode === 'briefing' && (
                   <>
-                    {/* Configuration Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                      <Select
-                        labelText="Analyst Firm"
-                        value={briefingAnalystFirm}
-                        onChange={(e) => setBriefingAnalystFirm(e.target.value)}
-                      >
-                        <SelectItem value="Gartner" text="Gartner" />
-                        <SelectItem value="Forrester" text="Forrester" />
-                        <SelectItem value="IDC" text="IDC" />
-                        <SelectItem value="Everest Group" text="Everest Group" />
-                      </Select>
-
-                      <Select
-                        labelText="AI Model"
-                        value={briefingModel}
-                        onChange={(e) => setBriefingModel(e.target.value)}
-                      >
-                        <SelectItem value="global/gpt-4o" text="GPT-4o (Recommended)" />
-                        <SelectItem value="gpt-4" text="GPT-4" />
-                        <SelectItem value="global/claude-3-7-sonnet" text="Claude 3.7 Sonnet" />
-                        <SelectItem value="global/ibm/granite-3-8b-instruct" text="Granite 3 8B" />
-                      </Select>
-
-                      <TextInput
-                        labelText="Presentation Filename"
-                        placeholder="e.g., Gartner_Briefing"
-                        value={presentationTitle}
-                        onChange={(e) => setPresentationTitle(e.target.value)}
-                      />
-                    </div>
-
-                    {/* Input Fields */}
-                    <div className="form-section">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <label>Briefing Structure Document (presentation outline)</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <Select
-                            id="briefing-pack-select"
-                            labelText=""
-                            defaultValue=""
-                            onChange={(e) => {
-                              console.log('Selected:', e.target.value, 'Available docs:', availableDocuments);
-                              const doc = availableDocuments.find(d => d.name === e.target.value)
-                              if (doc) {
-                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
-                                  .then(r => {
-                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                                    return r.text();
-                                  })
-                                  .then(text => setBriefingPack(text))
-                                  .catch(err => {
-                                    console.error('Error loading briefing pack:', err);
-                                    alert(`Failed to load document: ${err.message}`);
-                                  })
-                              }
-                            }}
-                            size="sm"
-                            style={{ width: '200px' }}
-                          >
-                            <SelectItem value="" text="Load from docs..." />
-                            {availableDocuments.map(doc => (
-                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
-                            ))}
-                          </Select>
+                    {!analyzedStructure && (
+                      <div className="input-config">
+                        <div className="project-docs-summary" style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f4f4f4', borderRadius: '4px' }}>
+                          <h4>📄 Project Documents (Auto-Detected)</h4>
+                          <ul style={{ listStyle: 'none', padding: 0, marginTop: '0.5rem' }}>
+                            {availableDocuments.some(d => d.metadata?.documentType === 'briefing_deck' || d.name.toLowerCase().includes('briefing')) ? (
+                              <li style={{ color: '#24a148' }}>✅ Briefing Pack found</li>
+                            ) : (
+                              <li style={{ color: '#da1e28' }}>❌ No Briefing Pack detected (upload one with 'briefing' in name)</li>
+                            )}
+                            {availableDocuments.some(d => d.metadata?.documentType === 'welcome_pack' || d.name.toLowerCase().includes('welcome')) ? (
+                              <li style={{ color: '#24a148' }}>✅ Welcome/Instructions found</li>
+                            ) : (
+                              <li style={{ color: '#da1e28' }}>❌ No Instructions detected (upload one with 'welcome' in name)</li>
+                            )}
+                          </ul>
+                          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: '#666' }}>
+                            Files are automatically pulled from the current project.
+                          </p>
                         </div>
+                        
+                        <Button
+                          kind="primary"
+                          onClick={analyzeBriefingStructure}
+                          disabled={generatingDeck}
+                        >
+                          {generatingDeck ? 'Analyzing...' : 'Analyze Structure'}
+                        </Button>
                       </div>
-                      <TextArea
-                        placeholder="Document outlining presentation structure (agenda, timings, slide titles, requirements, constraints)..."
-                        rows={8}
-                        value={briefingPack}
-                        onChange={(e) => setBriefingPack(e.target.value)}
-                      />
-                    </div>
+                    )}
 
-                    <div className="form-section">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <label>Supporting Analyst Information (market definitions, evaluation criteria)</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <Select
-                            id="briefing-instructions-select"
-                            labelText=""
-                            defaultValue=""
-                            onChange={(e) => {
-                              const doc = availableDocuments.find(d => d.name === e.target.value)
-                              if (doc) {
-                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
-                                  .then(r => {
-                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                                    return r.text();
-                                  })
-                                  .then(text => setBriefingInstructions(text))
-                                  .catch(err => {
-                                    console.error('Error loading briefing instructions:', err);
-                                    alert(`Failed to load document: ${err.message}`);
-                                  })
-                              }
-                            }}
-                            size="sm"
-                            style={{ width: '200px' }}
-                          >
-                            <SelectItem value="" text="Load from docs..." />
-                            {availableDocuments.map(doc => (
-                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
-                            ))}
-                          </Select>
-                        </div>
-                      </div>
-                      <TextArea
-                        placeholder="Supporting information from analyst (market definitions, evaluation criteria, guidelines, requirements)..."
-                        rows={4}
-                        value={briefingInstructions}
-                        onChange={(e) => setBriefingInstructions(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="form-section">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <label>IBM RFI Response</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          {generatedResponse?.answer && (
-                            <Button
-                              kind="tertiary"
-                              size="sm"
-                              onClick={() => setBriefingResponse(generatedResponse.answer)}
-                            >
-                              Use Generated Answer
-                            </Button>
-                          )}
-                          <Select
-                            id="briefing-response-select"
-                            labelText=""
-                            defaultValue=""
-                            onChange={(e) => {
-                              const doc = availableDocuments.find(d => d.name === e.target.value)
-                              if (doc) {
-                                fetch(`${apiUrl}/api/documents/download/${doc.name}`)
-                                  .then(r => {
-                                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                                    return r.text();
-                                  })
-                                  .then(text => setBriefingResponse(text))
-                                  .catch(err => {
-                                    console.error('Error loading vendor response:', err);
-                                    alert(`Failed to load document: ${err.message}`);
-                                  })
-                              }
-                            }}
-                            size="sm"
-                            style={{ width: '200px' }}
-                          >
-                            <SelectItem value="" text="Load from docs..." />
-                            {availableDocuments.map(doc => (
-                              <SelectItem key={doc.name} value={doc.name} text={doc.name} />
-                            ))}
-                          </Select>
-                        </div>
-                      </div>
-                      <TextArea
-                        placeholder="IBM's written response to the RFI/questionnaire (will be used to populate slide content)..."
-                        rows={8}
-                        value={briefingResponse}
-                        onChange={(e) => setBriefingResponse(e.target.value)}
-                      />
-                    </div>
-
-                    {/* IBM Supporting Materials - Multi-select */}
-                    <div className="form-section">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <label>IBM Supporting Materials (example decks, slides) - Optional</label>
-                      </div>
-                      <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
-                        {availableDocuments.length === 0 && <p style={{ color: '#666', fontSize: '0.875rem' }}>No documents available</p>}
-                        {availableDocuments.map(doc => (
-                          <div key={doc.name} style={{ padding: '0.25rem 0' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                              <input
-                                type="checkbox"
-                                checked={ibmSupportingMaterials.includes(doc.name)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setIbmSupportingMaterials([...ibmSupportingMaterials, doc.name])
-                                  } else {
-                                    setIbmSupportingMaterials(ibmSupportingMaterials.filter(name => name !== doc.name))
-                                  }
-                                }}
-                                style={{ marginRight: '0.5rem' }}
-                              />
-                              <span style={{ fontSize: '0.875rem' }}>{doc.name}</span>
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      {ibmSupportingMaterials.length > 0 && (
-                        <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
-                          {ibmSupportingMaterials.length} document(s) selected
+                    {/* Structure Review Section */}
+                    {analyzedStructure && !deckStructure && (
+                      <div className="structure-review" style={{ marginTop: '2rem' }}>
+                        <h3>Review Presentation Structure</h3>
+                        <p style={{ marginBottom: '1.5rem' }}>
+                          Select action for each section. Uncheck "Generate Content" for sections where you lack source data.
                         </p>
-                      )}
-                    </div>
 
-                    {/* Generate Button */}
-                    <Button
-                      kind="primary"
-                      onClick={generateBriefingDeck}
-                      disabled={generatingDeck || !briefingPack || !briefingInstructions}
-                    >
-                      {generatingDeck ? 'Generating...' : 'Generate Deck Structure'}
-                    </Button>
+                        <div className="sections-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                          {analyzedStructure.sections.map((section: any, idx: number) => (
+                            <div key={idx} className="section-config-card" style={{ 
+                              padding: '1rem', 
+                              border: '1px solid #e0e0e0', 
+                              borderRadius: '4px',
+                              background: '#fff',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <div className="section-info">
+                                <h4 style={{ margin: 0, fontSize: '1rem' }}>{section.name}</h4>
+                                <small style={{ color: '#666' }}>{section.duration} • {section.slideTopics?.length || 0} topics planned</small>
+                              </div>
+                              
+                              <div className="section-actions">
+                                <RadioButtonGroup
+                                  name={`action-${idx}`}
+                                  legendText="Action"
+                                  defaultSelected={sectionConfig[section.name] || 'content'}
+                                  onChange={(value) => {
+                                    setSectionConfig(prev => ({
+                                      ...prev,
+                                      [section.name]: value as 'content' | 'break' | 'skip'
+                                    }))
+                                  }}
+                                  orientation="horizontal"
+                                >
+                                  <RadioButton value="content" labelText="Generate Content" />
+                                  <RadioButton value="break" labelText="Section Break Only" />
+                                  <RadioButton value="skip" labelText="Skip" />
+                                </RadioButtonGroup>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="generation-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                          <Button
+                            kind="primary"
+                            onClick={generateBriefingDeck}
+                            disabled={generatingDeck}
+                          >
+                            {generatingDeck ? 'Generating Deck...' : 'Generate Deck Content'}
+                          </Button>
+                          <Button
+                            kind="secondary"
+                            onClick={() => setAnalyzedStructure(null)}
+                            disabled={generatingDeck}
+                          >
+                            Back
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Status Bar */}
                     {(loadingStage || generatingDeck) && (
@@ -1469,6 +1521,7 @@ export default function App() {
                             </div>
                           </div>
                         )}
+
 
                         {/* Slides Preview */}
                         <div className="slides-preview">

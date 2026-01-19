@@ -153,8 +153,38 @@ AFTER (Hybrid Few-Shot + Comprehensive RAG):
 
 ---
 
-**Last Updated**: 2026-01-16 14:30 UTC  
-**Time Spent**: ~2 hours research + implementation
+## Late Session Fix: Version Metadata Added (16:45 UTC)
+
+**Issue**: Backend was correctly uploading analyst metadata but version field was missing from blob metadata.
+
+**Fix Applied**: Added default version "1.0" to blob metadata in [azureBlobService.js](server/services/azureBlobService.js):
+- Line ~86: Added `version: '1.0'` to blobMetadata object stored in Azure Blob
+- Line ~118: Added `version: '1.0'` to response metadata returned to frontend
+
+**Changes Made**:
+```javascript
+const blobMetadata = {
+  // ... existing fields ...
+  analyst: analyst,
+  version: '1.0'  // NEW
+};
+
+// Upload response metadata:
+metadata: {
+  // ... existing fields ...
+  analyst,
+  version: '1.0'  // NEW
+}
+```
+
+**Status**: ✅ Fixed - version metadata now persists to Azure Blob Storage and returned in upload response
+
+**Note**: User stopped the session before version column UI implementation (frontend display/editing not completed).
+
+---
+
+**Last Updated**: 2026-01-16 16:45 UTC  
+**Time Spent**: ~2 hours research + implementation + 15min version fix
 **Blocker Status**: None - enhanced approach implemented and tested
 - User clarified: "the deck that i used for the last set of screenshots is also in the Azure Blob Store!!!!"
 - The indexed documents in Azure Search included **both**:

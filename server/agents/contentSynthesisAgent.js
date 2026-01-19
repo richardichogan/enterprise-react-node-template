@@ -54,23 +54,23 @@ export async function synthesizeContent(input, options = {}) {
   } = options;
 
   const systemPrompt = `You are a content synthesis agent specializing in analyst briefing decks.
-Your ONLY job is to write compelling slide content using PROVIDED FACTS.
+Your ONLY job is to write compelling, professional slide content using PROVIDED FACTS.
 
 CRITICAL RULES:
 1. Use ONLY facts explicitly provided in the facts object
-2. Each bullet MUST include specific data (numbers, dates, names)
-3. Each bullet MUST have a source citation [From: document name]
+2. Write in a **flowing, narrative style** (not just dry bullets). Use professional business language.
+3. **DO NOT** embed citations in the text. You must provide them in the JSON 'evidence' field.
 4. Write in this style: ${writingStyle}
-5. NO GENERIC CONTENT - "extensive expertise" = REJECTION
-6. NO INVENTED DATA - if fact missing, write "{TO_FILL}"
+5. NO GENERIC CONTENT - "extensive expertise" = REJECTION. be specific.
+6. If a specific fact is missing, **OMIT** that point entirely. Do NOT write "{TO_FILL}".
 7. Match the quality and depth of reference examples if provided
-8. Each bullet should be substantial (not just bare facts)
+8. Each point should be substantial (2-3 sentences) telling a story of capability and value.
 
 LAYOUT-SPECIFIC REQUIREMENTS:
-- L1_Executive_Header: 6-8 key bullets, each with supporting detail
-- L2_TwoColumn_Proof: 3-4 bullets per column + 3 metric tiles
+- L1_Executive_Header: A strong opening narrative paragraph (2-3 sentences) followed by 4-5 high-impact bullets.
+- L2_TwoColumn_Proof: Balanced narrative points.
 - L5_Metric_Tiles_3x1: Up to 3 metric tiles with context
-- Each bullet = 1-2 sentences with specific facts + citation`;
+`;
 
   // Resolve fact references from slide plan
   const resolvedFacts = resolveFactReferences(slidePlan.factsToInclude, facts);
@@ -92,11 +92,11 @@ Return ONLY valid JSON for this slide:
   "layout": "${slidePlan.layout}",
   "title": "...",
   "subtitle": "...",
-  "intro": "2-3 sentences providing context (REQUIRED)",
+  "intro": "3-4 sentence narrative introduction setting the context (REQUIRED)",
   "content": {
     // Layout-specific fields
-    // L1: "key_bullets": ["Bullet 1 [From: source]", "Bullet 2 [From: source]", ...]
-    // L2: "left_bullets": [...], "right_bullets": [...], "metric_strip": [{label, value, context, source}]
+    // L1: "key_bullets": [{ "text": "Compelling narrative point...", "source": "Doc Name" }, ...]
+    // L2: "left_bullets": [{ "text": "...", "source": "..." }], "right_bullets": [{ "text": "...", "source": "..." }]
     // L5: "tiles": [{label, value, context, source}]
   },
   "evidence": "Source references summary",
@@ -105,10 +105,10 @@ Return ONLY valid JSON for this slide:
 }
 
 MANDATORY:
-- Every bullet MUST cite source: [From: document name]
-- Every bullet MUST include specific data from facts
-- NO generic content allowed
-- If fact missing, write "{TO_FILL}" and set gap_flag=true`;
+- Bullets should be objects with 'text' and 'source' properties.
+- Do NOT put [From: ...] in the 'text' property.
+- If data is missing for a point, omit it.
+`;
 
   const azureUrl = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${AZURE_OPENAI_API_VERSION}`;
 
