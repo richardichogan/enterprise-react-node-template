@@ -28,7 +28,8 @@ const origins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
   .map(o => o.trim());
 
 app.use(cors({ origin: origins }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increased for large deck responses
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Local JSON storage helpers (temporary persistence)
 const ensureProjectsFile = async () => {
@@ -55,7 +56,7 @@ const saveProjects = async (projects) => {
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 250 * 1024 * 1024 // 250MB max file size
+    fileSize: 500 * 1024 * 1024 // 500MB max file size
   },
   fileFilter: (_req, file, cb) => {
     // Accept common document formats
@@ -65,13 +66,15 @@ const upload = multer({
       'application/msword', // .doc
       'text/plain',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
-      'application/vnd.ms-powerpoint' // .ppt
+      'application/vnd.ms-powerpoint', // .ppt
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel' // .xls
     ];
     
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, Word, PowerPoint, TXT`));
+      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, Word, PowerPoint, Excel, TXT`));
     }
   }
 });
@@ -404,7 +407,7 @@ app.post('/api/presentations/generate-briefing-deck', async (req, res) => {
   }
 });
 
-// Create PowerPoint from Deck Structure
+// Create PowerPoint from Deck Structure (TEMPORARY: Returns Markdown instead)
 app.post('/api/presentations/create-from-deck', async (req, res) => {
   try {
     const { deckStructure, filename = 'Briefing_Deck' } = req.body;
@@ -413,21 +416,21 @@ app.post('/api/presentations/create-from-deck', async (req, res) => {
       return res.status(400).json({ error: 'Deck structure is required' });
     }
 
-    console.log('📊 Creating PowerPoint from deck structure...');
+    console.log('📝 Creating presentation from deck structure (MARKDOWN BYPASS)...');
 
-    const pptxBuffer = await createPresentationFromDeck(deckStructure);
+    const buffer = await createPresentationFromDeck(deckStructure);
 
-    // Set headers for file download
-    const sanitizedFilename = `${filename.replace(/[^a-z0-9]/gi, '_')}.pptx`;
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    // Set headers for markdown file download (.md instead of .pptx)
+    const sanitizedFilename = `${filename.replace(/[^a-z0-9]/gi, '_')}.md`;
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${sanitizedFilename}"`);
-    res.setHeader('Content-Length', pptxBuffer.length);
+    res.setHeader('Content-Length', buffer.length);
 
-    res.send(pptxBuffer);
+    res.send(buffer);
   } catch (error) {
-    console.error('Error creating PowerPoint:', error);
+    console.error('Error creating presentation:', error);
     res.status(500).json({ 
-      error: 'Failed to create PowerPoint', 
+      error: 'Failed to create presentation', 
       details: error.message 
     });
   }
@@ -648,7 +651,12 @@ app.get('/api/documents/download/:blobName', async (req, res) => {
           const files = Object.keys(slideFolder.files).filter(f => f.match(/slide\d+\.xml$/));
           
           for (const slideFile of files.sort()) {
-            const slideContent = await zip.file(`ppt/slides/${slideFile}`).async('text');
+            const file = zip.file(slideFile);
+            if (!file) {
+              console.warn(`  ⚠️  Missing slide file: ${slideFile}`);
+              continue;
+            }
+            const slideContent = await file.async('text');
             // Extract text from <a:t> tags (text elements in PowerPoint)
             const matches = slideContent.match(/<a:t>([^<]*)<\/a:t>/g);
             if (matches) {
@@ -718,7 +726,8 @@ app.put('/api/documents/:fileName/metadata', async (req, res) => {
 // Delete document
 app.delete('/api/documents/:blobName', async (req, res) => {
   try {
-    const { blobName } = req.params;
+    // Decode the URL-encoded blob name
+    const blobName = decodeURIComponent(req.params.blobName);
     
     const result = await deleteDocument(blobName);
     

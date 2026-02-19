@@ -24,9 +24,123 @@
         "size": 120897,
         "uploadDate": "2026-01-12T13:21:32.000Z",
         "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-12T13-21-31-281Z_Live Briefing Guidelines for Cloud ERP Services, 2026.pdf"
+      },
+      {
+        "name": "2026-01-22T12-01-04-909Z_Magic-Quadrant-and-Critical-Capabilities_Cloud-ERP-Services_IBM_Questionnaire_21-Jan-2026.xlsx",
+        "size": 135073,
+        "uploadDate": "2026-01-22T12:01:04.879Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-01-04-909Z_Magic-Quadrant-and-Critical-Capabilities_Cloud-ERP-Services_IBM_Questionnaire_21-Jan-2026.xlsx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: Magic-Quadrant-and-Critical-Capabilities_Cloud-ERP-Services_IBM_Questionnaire_21-Jan-2026.xlsx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
+      },
+      {
+        "name": "2026-01-22T12-02-21-651Z_Gartner MQ & CC Cloud ERP Services Q1 2026  Kick Off.pptx",
+        "size": 1121191,
+        "uploadDate": "2026-01-22T12:02:21.620Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-02-21-651Z_Gartner%20MQ%20%26%20CC%20Cloud%20ERP%20Services%20Q1%202026%20%20Kick%20Off.pptx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: Gartner MQ & CC Cloud ERP Services Q1 2026  Kick Off.pptx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
+      },
+      {
+        "name": "2026-01-22T12-03-19-128Z_F&O Offerings and Accelerators overview v1 (1).pptx",
+        "size": 14437516,
+        "uploadDate": "2026-01-22T12:03:19.094Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-03-19-128Z_F%26O%20Offerings%20and%20Accelerators%20overview%20v1%20(1).pptx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: F&O Offerings and Accelerators overview v1 (1).pptx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
+      },
+      {
+        "name": "2026-01-22T12-05-37-177Z_MQCC PCITS 2025- Vendor Briefing_v2.2.pptx",
+        "size": 11979376,
+        "uploadDate": "2026-01-22T12:05:37.084Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-05-37-177Z_MQCC%20PCITS%202025-%20Vendor%20Briefing_v2.2.pptx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: MQCC PCITS 2025- Vendor Briefing_v2.2.pptx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
+      },
+      {
+        "name": "2026-01-22T12-08-48-002Z_2026 IBM Consulting Strategy & Capabilities Deck v26.02.pptx",
+        "size": 128972723,
+        "uploadDate": "2026-01-22T12:08:47.964Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-08-48-002Z_2026%20IBM%20Consulting%20Strategy%20%26%20Capabilities%20Deck%20v26.02.pptx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: 2026 IBM Consulting Strategy & Capabilities Deck v26.02.pptx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
+      },
+      {
+        "name": "2026-01-22T12-15-50-222Z_Forrester Global IBMC Oracle Update 1.7.26 (1).pptx",
+        "size": 523577958,
+        "uploadDate": "2026-01-22T12:15:50.178Z",
+        "url": "https://sarfidocuments.blob.core.windows.net/rfi-documents/2026-01-22T12-15-50-222Z_Forrester%20Global%20IBMC%20Oracle%20Update%201.7.26%20(1).pptx",
+        "analyst": "Gartner",
+        "metadata": {
+          "documentType": "unknown",
+          "confidence": "low",
+          "priority": "LOW",
+          "sourceCategory": "secondary_context",
+          "isPrimaryContent": false,
+          "retrievalWeight": 0.5,
+          "detectionMethod": "user_override_required",
+          "analysis": "Could not auto-detect. Filename: Forrester Global IBMC Oracle Update 1.7.26 (1).pptx",
+          "analyst": "Gartner",
+          "version": "1.0"
+        }
       }
     ],
     "createdAt": "2026-01-12T16:59:44.003Z",
-    "updatedAt": "2026-01-16T13:44:07.703Z"
+    "updatedAt": "2026-01-22T12:17:37.407Z"
   }
 ]

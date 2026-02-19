@@ -84,6 +84,7 @@ export default function App() {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
   const [loading, setLoading] = useState(false)
   const [loadingStage, setLoadingStage] = useState<string>('')
+  const [loadingDetail, setLoadingDetail] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [availableDocuments, setAvailableDocuments] = useState<UploadedDocument[]>([])
   
@@ -427,11 +428,30 @@ export default function App() {
     }
   }
 
-  // Delete document from project
-  const deleteDocument = (docName: string) => {
-    const updated = projectDocuments.filter(d => d.name !== docName)
-    setProjectDocuments(updated)
-    updateCurrentProject({ documents: updated })
+  // Delete document from project and blob storage
+  const deleteDocument = async (docName: string) => {
+    try {
+      // Delete from blob storage
+      const response = await fetch(`${apiUrl}/api/documents/${encodeURIComponent(docName)}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.details || 'Delete failed')
+      }
+      
+      // Remove from project
+      const updated = projectDocuments.filter(d => d.name !== docName)
+      setProjectDocuments(updated)
+      updateCurrentProject({ documents: updated })
+      
+      // Refresh documents list
+      await fetchDocuments()
+    } catch (err: any) {
+      console.error('Delete error:', err)
+      alert(`Failed to delete document: ${err.message}`)
+    }
   }
 
   const toggleExistingDocument = (doc: UploadedDocument, attach: boolean) => {
@@ -562,11 +582,13 @@ export default function App() {
     if (briefingPack) return briefingPack;
     
     // Auto-detect from project documents
-    // Priority: metadata.documentType === 'briefing_pack' -> filename includes 'briefing'
-    const doc = availableDocuments.find(d => 
-      d.metadata?.documentType === 'briefing_deck' || 
-      d.name.toLowerCase().includes('briefing')
-    );
+    // Priority 1: Use tagged briefing_deck document
+    let doc = availableDocuments.find(d => d.metadata?.documentType === 'briefing_deck');
+    
+    // Priority 2: Fall back to filename matching only if no tagged document
+    if (!doc) {
+      doc = availableDocuments.find(d => d.name.toLowerCase().includes('briefing'));
+    }
     
     if (doc) {
       const resp = await fetch(`${apiUrl}/api/documents/download/${doc.name}`);
@@ -579,13 +601,19 @@ export default function App() {
     if (briefingInstructions) return briefingInstructions;
     
     // Auto-detect
-    // Priority: metadata.documentType === 'primary_signposts' -> filename includes 'welcome' or 'instructions'
-    const doc = availableDocuments.find(d => 
+    // Priority 1: Use tagged welcome_pack or primary_signposts document
+    let doc = availableDocuments.find(d => 
       d.metadata?.documentType === 'welcome_pack' || 
-      d.metadata?.documentType === 'primary_signposts' ||
-      d.name.toLowerCase().includes('welcome') ||
-      d.name.toLowerCase().includes('instruction')
+      d.metadata?.documentType === 'primary_signposts'
     );
+    
+    // Priority 2: Fall back to filename matching only if no tagged document
+    if (!doc) {
+      doc = availableDocuments.find(d =>
+        d.name.toLowerCase().includes('welcome') ||
+        d.name.toLowerCase().includes('instruction')
+      );
+    }
     
     if (doc) {
       const resp = await fetch(`${apiUrl}/api/documents/download/${doc.name}`);
@@ -654,7 +682,16 @@ export default function App() {
               if (data.complete) {
                 result = data
               } else if (data.message) {
-                setLoadingStage(data.message)
+                // Parse structured progress: "STAGE|||DETAIL" or legacy single message
+                const parts = data.message.split('|||')
+                if (parts.length === 2) {
+                  setLoadingStage(parts[0].trim())
+                  setLoadingDetail(parts[1].trim())
+                } else {
+                  // Legacy format - put everything in stage
+                  setLoadingStage(data.message)
+                  setLoadingDetail('')
+                }
               }
             } catch (parseErr) {
               console.error('Failed to parse SSE message:', parseErr)
@@ -676,13 +713,13 @@ export default function App() {
     }
   }
 
-  // Download PowerPoint from Deck Structure
+  // Download Presentation from Deck Structure (TEMPORARY: Markdown instead of PowerPoint)
   const downloadPresentation = async () => {
     if (!deckStructure) return
 
     setLoading(true)
     setError(null)
-    setLoadingStage('Creating PowerPoint file...')
+    setLoadingStage('Creating Markdown file (TEMPORARY BYPASS)...')
 
     try {
       const response = await fetch(`${apiUrl}/api/presentations/create-from-deck`, {
@@ -709,13 +746,13 @@ export default function App() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${(presentationTitle || 'Briefing_Deck').replace(/[^a-z0-9]/gi, '_')}.pptx`
+      a.download = `${(presentationTitle || 'Briefing_Deck').replace(/[^a-z0-9]/gi, '_')}.md`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
 
-      setLoadingStage('✅ Presentation downloaded successfully!')
+      setLoadingStage('✅ Presentation downloaded successfully (MD format)!')
       setTimeout(() => setLoadingStage(''), 3000)
     } catch (err) {
       console.error('Presentation error:', err)
@@ -1463,24 +1500,46 @@ export default function App() {
                         backgroundColor: generatingDeck ? '#e8f4f8' : '#e6ffed',
                         borderLeft: `4px solid ${generatingDeck ? '#0043ce' : '#24a148'}`,
                         borderRadius: '4px',
-                        fontFamily: 'monospace',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                         fontSize: '0.875rem'
                       }}>
                         {loadingStage ? (
                           <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {/* Stage Header */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              marginBottom: loadingDetail ? '0.5rem' : '0',
+                              fontWeight: 600,
+                              fontSize: '0.95rem',
+                              color: '#161616'
+                            }}>
                               {generatingDeck && (
                                 <span style={{
                                   display: 'inline-block',
-                                  width: '0.75rem',
-                                  height: '0.75rem',
+                                  width: '0.875rem',
+                                  height: '0.875rem',
                                   backgroundColor: '#0043ce',
                                   borderRadius: '50%',
-                                  animation: 'pulse 1.5s infinite'
+                                  animation: 'pulse 1.5s infinite',
+                                  flexShrink: 0
                                 }} />
                               )}
                               <span>{loadingStage}</span>
                             </div>
+                            
+                            {/* Detail Line */}
+                            {loadingDetail && (
+                              <div style={{
+                                paddingLeft: generatingDeck ? '1.625rem' : '0',
+                                color: '#525252',
+                                fontSize: '0.85rem',
+                                fontStyle: 'italic'
+                              }}>
+                                {loadingDetail}
+                              </div>
+                            )}
                           </>
                         ) : (
                           <span>Initializing...</span>
@@ -1567,32 +1626,7 @@ export default function App() {
                           ))}
                         </div>
 
-                        {/* Traceability Matrix */}
-                        {deckStructure.traceabilityMatrix && deckStructure.traceabilityMatrix.length > 0 && (
-                          <div className="traceability-matrix">
-                            <h4>🔗 Traceability Matrix</h4>
-                            <table>
-                              <thead>
-                                <tr>
-                                  <th>Slide</th>
-                                  <th>Pack Requirement</th>
-                                  <th>Response Source</th>
-                                  <th>Status</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {deckStructure.traceabilityMatrix.map((item: any, idx: number) => (
-                                  <tr key={idx}>
-                                    <td>{item.slideNumber}</td>
-                                    <td>{item.packRequirement}</td>
-                                    <td>{item.responseSource}</td>
-                                    <td className={`status-${item.status}`}>{item.status}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+
 
                         {/* Gap List */}
                         {deckStructure.gapList && deckStructure.gapList.length > 0 && (
@@ -1609,19 +1643,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Q&A Bank */}
-                        {deckStructure.qaBank && deckStructure.qaBank.length > 0 && (
-                          <div className="qa-bank">
-                            <h4>💬 Q&A Bank ({deckStructure.qaBank.length})</h4>
-                            {deckStructure.qaBank.map((qa: any, idx: number) => (
-                              <details key={idx} className="qa-item">
-                                <summary><strong>Q{idx + 1}:</strong> {qa.question}</summary>
-                                <p><strong>A:</strong> {qa.answer}</p>
-                                {qa.evidenceSource && <p className="evidence-source"><em>Source: {qa.evidenceSource}</em></p>}
-                              </details>
-                            ))}
-                          </div>
-                        )}
+
 
                         {/* Download Button */}
                         <Button
@@ -1630,17 +1652,11 @@ export default function App() {
                           disabled={loading}
                           style={{ marginTop: '1.5rem' }}
                         >
-                          {loading ? 'Creating PowerPoint...' : 'Download PowerPoint'}
+                          {loading ? 'Creating Markdown...' : 'Download as Markdown'}
                         </Button>
                       </div>
                     )}
-                  </>
-                )}
-
-                {loadingStage && (
-                  <div className="progress-box">
-                    <p>{loadingStage}</p>
-                  </div>
+                  </>  
                 )}
 
                 {error && (

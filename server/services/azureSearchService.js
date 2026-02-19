@@ -89,9 +89,10 @@ async function generateEmbedding(text) {
  * Search documents using hybrid search (vector + keyword)
  * @param {string} query - User's search query
  * @param {number} topK - Number of results to return
+ * @param {string} filter - Optional OData filter expression (e.g., "search.ismatch('ibm.com', 'fileName')")
  * @returns {Promise<string>} - Combined context from search results
  */
-export async function searchDocuments(query, topK = 5) {
+export async function searchDocuments(query, topK = 5, filter = null) {
   const isInitialized = searchClient || initializeClients();
   
   if (!isInitialized) {
@@ -100,13 +101,13 @@ export async function searchDocuments(query, topK = 5) {
   }
 
   try {
-    console.log(`🔍 Searching Azure AI Search for: "${query.substring(0, 100)}..."`);
+    console.log(`🔍 Searching Azure AI Search for: "${query.substring(0, 100)}..."${filter ? ` [FILTER: ${filter}]` : ''}`);
     
     // Generate query embedding for vector search
     const queryVector = await generateEmbedding(query);
     
-    // Perform hybrid search (vector + keyword)
-    const searchResults = await searchClient.search(query, {
+    // Build search options
+    const searchOptions = {
       vectorSearchOptions: {
         queries: [
           {
@@ -120,7 +121,15 @@ export async function searchDocuments(query, topK = 5) {
       select: ['content', 'title', 'fileName', 'pageNumber'],
       top: topK,
       includeTotalCount: true
-    });
+    };
+    
+    // Add OData filter if provided
+    if (filter) {
+      searchOptions.filter = filter;
+    }
+    
+    // Perform hybrid search (vector + keyword)
+    const searchResults = await searchClient.search(query, searchOptions);
 
     // Collect results
     const results = [];

@@ -16,8 +16,10 @@ import { getFrameworkCriteria } from './analystEvaluatorService.js';
 
 // Import modular agents for slide generation pipeline
 import { extractFacts as agentExtractFacts } from '../agents/dataExtractionAgent.js';
+import { generateNarrativeSpine as agentGenerateSpine, validateSpineCompleteness } from '../agents/narrativeSpineAgent.js';
 import { planStructure as agentPlanStructure } from '../agents/structurePlanningAgent.js';
 import { synthesizeContent as agentSynthesizeContent } from '../agents/contentSynthesisAgent.js';
+import { transformToExecutiveBriefing as agentTransformNarrative, generateVisionStatement as agentGenerateVision } from '../agents/narrativeTransformationAgent.js';
 import { validateBatch as agentValidateBatch } from '../agents/qualityValidationAgent.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,12 +32,111 @@ const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
 const AZURE_OPENAI_API_KEY = process.env.AZURE_OPENAI_API_KEY;
 const AZURE_OPENAI_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o';
 const AZURE_OPENAI_API_VERSION = process.env.AZURE_OPENAI_API_VERSION || '2025-01-01-preview';
+const FOUNDRY_RESPONSES_URL = `${AZURE_OPENAI_ENDPOINT}/openai/v1/responses`;
+
+// Helper: Load strategic positioning document
+async function getStrategicPositioning(analystFirm = 'Gartner') {
+  try {
+    const positioningPath = path.join(__dirname, '..', 'docs', 'STRATEGIC-POSITIONING.md');
+    const content = await fs.readFile(positioningPath, 'utf-8');
+    
+    // Parse markdown into structured format
+    return {
+      source: 'STRATEGIC-POSITIONING.md',
+      content: content,
+      analystFirm: analystFirm,
+      lastUpdated: new Date().toISOString(),
+      ready: true
+    };
+  } catch (err) {
+    console.warn(`⚠️  Strategic positioning document not found or error reading:`, err.message);
+    return null;
+  }
+}
+
+// Helper: call Foundry agent with web_search_preview for web-grounded content
+async function queryFoundryAgent(prompt) {
+  if (!FOUNDRY_RESPONSES_URL || !AZURE_OPENAI_API_KEY) return '';
+  try {
+    const response = await fetch(FOUNDRY_RESPONSES_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': AZURE_OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        model: AZURE_OPENAI_DEPLOYMENT,
+        tools: [{ type: 'web_search_preview' }],
+        input: prompt
+      })
+    });
+    if (!response.ok) {
+      console.warn(`⚠️  Foundry responses API call failed: ${response.status}`);
+      return '';
+    }
+    const data = await response.json();
+    // Responses API may return output_text or output array; fall back to chat-style choices
+    const outputText = data.output_text
+      || (Array.isArray(data.output)
+        ? data.output
+            .map(item =>
+              Array.isArray(item.content)
+                ? item.content.map(c => c.text || '').join('\n')
+                : '')
+            .join('\n')
+        : '')
+      || data.choices?.[0]?.message?.content
+      || '';
+    return outputText.trim();
+  } catch (err) {
+    console.warn(`⚠️  Foundry agent error: ${err.message}`);
+    return '';
+  }
+}
 
 /**
  * Retry helper for Azure OpenAI calls with exponential backoff
  * Handles 429 rate limits automatically
  * Azure OpenAI S0 tier resets quotas every 60 seconds
  */
+/**
+ * Helper: Extract all text from a slide for de-duplication analysis
+ */
+function extractSlideText(slide) {
+  const texts = [];
+  if (slide.title) texts.push(slide.title);
+  if (slide.subtitle) texts.push(slide.subtitle);
+  if (slide.intro) texts.push(slide.intro);
+  
+  const c = slide.content || {};
+  const collectBullets = arr => {
+    if (Array.isArray(arr)) {
+      arr.forEach(b => {
+        if (b && typeof b === 'object' && b.text) texts.push(b.text);
+        else if (typeof b === 'string') texts.push(b);
+      });
+    }
+  };
+  
+  collectBullets(c.key_bullets);
+  collectBullets(c.left_bullets);
+  collectBullets(c.right_bullets);
+  collectBullets(c.challenges);
+  collectBullets(c.solutions);
+  
+  if (Array.isArray(c.tiles)) {
+    c.tiles.forEach(t => {
+      if (t) {
+        if (t.label) texts.push(t.label);
+        if (t.value) texts.push(String(t.value));
+        if (t.context) texts.push(t.context);
+      }
+    });
+  }
+  
+  return texts.join(' ');
+}
+
 async function retryWithBackoff(fn, maxRetries = 3, delayMs = 65000) {
   let lastError;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -202,22 +303,31 @@ export const generateBriefingDeck = async (
     };
 
     // STEP 0: Extract and enrich facts for structured layouts
-    emitProgress(0, 6, 'Extracting structured facts...');
+    emitProgress(0, 6, '📊 Initialization|||Extracting structured facts from briefing documents');
     const baseFacts = await extractFacts(briefingPack, briefingInstructions, analystFirm, vendorResponse);
     const enrichedFacts = await enrichFacts(baseFacts, briefingPack, briefingInstructions, vendorResponse);
 
     // STEP 1: Parse briefing pack to extract structure
-    emitProgress(1, 6, 'Parsing briefing pack structure...');
+    emitProgress(1, 6, '📋 Structure Analysis|||Parsing briefing pack to identify sections and timing');
     const structure = await parseBriefingStructure(briefingPack, briefingInstructions, analystFirm, aiModel);
-    emitProgress(1, 6, `✅ Extracted ${structure.sections.length} sections with ${structure.totalSlides} slides`);
+    emitProgress(1, 6, `📋 Structure Analysis|||Found ${structure.sections.length} sections with ${structure.totalSlides} total slides`);
 
     // STEP 2: Generate narrative/story with golden thread
-    emitProgress(2, 6, 'Generating narrative arc and golden thread...');
-    const narrative = await generateNarrative(briefingPack, briefingInstructions, structure, analystFirm, aiModel);
-    emitProgress(2, 6, `✅ Generated narrative framework connecting all sections`);
+    emitProgress(2, 6, '📝 Narrative Framework|||Generating narrative arc and golden thread across sections');
+    
+    // Load strategic positioning to guide narrative generation
+    const strategicPositioning = await getStrategicPositioning(analystFirm);
+    if (strategicPositioning) {
+      console.log(`   📋 Strategic positioning loaded: ${analystFirm}`);
+    } else {
+      console.warn(`   ⚠️  No strategic positioning found - narrative will be auto-generated`);
+    }
+    
+    const narrative = await generateNarrative(briefingPack, briefingInstructions, structure, analystFirm, aiModel, strategicPositioning?.content);
+    emitProgress(2, 6, '📝 Narrative Framework|||Created narrative framework connecting all sections');
 
     // STEP 3: Generate title slide
-    emitProgress(3, 6, 'Generating title slide...');
+    emitProgress(3, 6, '🎭 Title Slide|||Creating briefing title slide');
     const titleSlide = {
       number: 1,
       section: 'Title',
@@ -233,7 +343,7 @@ export const generateBriefingDeck = async (
     const allSlides = [titleSlide];
 
     // STEP 4: Generate slides for each section with section dividers
-    emitProgress(4, 6, 'Generating slides for each section...');
+    emitProgress(4, 6, '📄 Section Generation|||Processing all briefing sections');
     for (let i = 0; i < structure.sections.length; i++) {
       const section = structure.sections[i];
       // Determine action for this section based on user config
@@ -280,8 +390,36 @@ export const generateBriefingDeck = async (
         continue;
       }
       
+      // Auto-fallback: If Part Four has no slideTopics, provide default MQ/CC topics
+      const isPartFour = section.name?.toLowerCase().includes('part four') || section.name?.toLowerCase().includes('mq and cc');
+      console.log(`   🔍 DEBUG: Section "${section.name}" - isPartFour: ${isPartFour}, slideTopics: ${JSON.stringify(section.slideTopics)}`);
+      
+      if (isPartFour && (!section.slideTopics || section.slideTopics.length === 0)) {
+        console.log(`   ℹ️  Part Four detected with no slideTopics - adding default MQ/CC topics`);
+        section.slideTopics = [
+          'Ability to Execute: Product/Service',
+          'Ability to Execute: Overall Viability',
+          'Ability to Execute: Sales Execution/Pricing',
+          'Ability to Execute: Market Responsiveness/Record',
+          'Ability to Execute: Marketing Execution',
+          'Ability to Execute: Customer Experience',
+          'Ability to Execute: Operations',
+          'Completeness of Vision: Market Understanding',
+          'Completeness of Vision: Marketing Strategy',
+          'Completeness of Vision: Sales Strategy',
+          'Completeness of Vision: Offering (Product) Strategy',
+          'Completeness of Vision: Business Model',
+          'Completeness of Vision: Vertical/Industry Strategy',
+          'Completeness of Vision: Innovation',
+          'Completeness of Vision: Geographic Strategy'
+        ];
+        console.log(`   ✅ Added ${section.slideTopics.length} default MQ topics to Part Four`);
+      }
+      
+      console.log(`   🚀 Calling generateSectionSlides for "${section.name}" with ${section.slideTopics?.length || 0} slideTopics`);
+      
       // Generate content slides for this section using narrative context
-      const sectionSlides = await generateSectionSlides(section, briefingPack, briefingInstructions, analystFirm, aiModel, narrative, vendorResponse);
+      const sectionSlides = await generateSectionSlides(section, briefingPack, briefingInstructions, analystFirm, aiModel, narrative, vendorResponse, emitProgress);
       allSlides.push(...sectionSlides);
       emitProgress(4, 6, `Generated ${sectionSlides.length} slides for "${section.name}" (${i + 1}/${structure.sections.length})`);
     }
@@ -346,8 +484,14 @@ export const analyzeBriefingStructure = async (briefingPack, briefingInstruction
 
 /**
  * PASS 1: Generate narrative arc and golden thread connecting all sections
+ * @param {string} briefingPack - Briefing pack content
+ * @param {string} briefingInstructions - Briefing instructions/guidelines
+ * @param {Object} structure - Parsed briefing structure
+ * @param {string} analystFirm - Analyst firm name (Gartner, Forrester, etc.)
+ * @param {string} aiModel - AI model to use
+ * @param {Object} strategicPositioning - (Optional) Pre-defined strategic positioning with key differentiators
  */
-async function generateNarrative(briefingPack, briefingInstructions, structure, analystFirm, aiModel) {
+async function generateNarrative(briefingPack, briefingInstructions, structure, analystFirm, aiModel, strategicPositioning = null) {
   // Get evaluation criteria for this analyst firm
   const criteria = getFrameworkCriteria(analystFirm);
   const criteriaList = criteria.dimensions
@@ -364,6 +508,12 @@ ${criteriaList}
 
 Your narrative arc MUST position IBM strongly across ALL these dimensions.
 Analyze IBM's positioning and create a coherent story framework that flows across all sections.
+
+${strategicPositioning ? `STRATEGIC POSITIONING GUIDANCE:
+These are IBM's approved key differentiators for this briefing. Weave them into the narrative:
+${JSON.stringify(strategicPositioning, null, 2).substring(0, 2000)}
+` : ''}
+
 Return ONLY valid JSON with no markdown formatting.`;
 
   const userPrompt = `Create the narrative arc and golden thread for this briefing:
@@ -372,25 +522,44 @@ Return ONLY valid JSON with no markdown formatting.`;
 ${structure.sections.map(s => `- ${s.name} (${s.duration})`).join('\n')}
 
 **Briefing Content**:
-${briefingPack.substring(0, 10000)}
+${briefingPack.substring(0, 15000)}
 
 **Analyst Expectations**:
-${briefingInstructions.substring(0, 2000)}
+${briefingInstructions.substring(0, 3000)}
+
+CRITICAL: Develop IBM's UNIQUE competitive positioning, not generic ERP capabilities.
+
+Focus on:
+1. **IBM's Specific Differentiation**: What makes IBM uniquely positioned vs. competitors (not just features)?
+2. **Quantified Proof**: Use actual metrics from briefing pack (e.g., timeline compression, productivity gains, delivery scale)
+3. **Strategic Narrative**: How does IBM's offering address the analyst firm's evaluation framework?
+4. **Market Context**: Position IBM as solution to current market dynamics and buyer challenges
+5. **Forward Vision**: What is IBM's strategic direction (AI roadmap, ecosystem, innovation)?
 
 Generate a JSON narrative framework with:
 {
-  "overarchingTheme": "One sentence theme that connects all sections",
-  "narrative": "2-3 paragraph narrative arc that flows across sections",
+  "overarchingTheme": "One compelling sentence that captures IBM's unique market position",
+  "narrative": "3-4 paragraph narrative that: (1) establishes market context, (2) articulates IBM's differentiation vs. competitors, (3) proves it with scale/execution/innovation, (4) positions for future",
+  "competitiveContext": "How IBM differs from top 2-3 competitors in this space",
+  "ibmDifferentiators": [
+    "Differentiator 1 with proof point/metric",
+    "Differentiator 2 with proof point/metric",
+    "Differentiator 3 with proof point/metric"
+  ],
   "sectionTransitions": {
-    "Section Name": "How this section advances the narrative"
+    "Section Name": "How this section advances the narrative and proves IBM's positioning"
   },
   "keyMessages": [
-    "Message 1 - core value proposition",
-    "Message 2 - strategic positioning",
-    "Message 3 - differentiation"
+    "Message 1 - core value proposition unique to IBM",
+    "Message 2 - strategic positioning vs. market",
+    "Message 3 - IBM's forward vision/roadmap"
   ],
-  "analystCriteria": "How narrative maps to analyst evaluation framework",
-  "recommendedDemoScenarios": ["Scenario 1", "Scenario 2"]
+  "analystCriteria": "How narrative maps to ${analystFirm} evaluation framework (AE and CV positioning)",
+  "marketTension": "The key buyer challenge or market dynamic this briefing addresses",
+  "recommendedDemoScenarios": [
+    "Scenario 1 - demonstrates IBM's differentiation",
+    "Scenario 2 - shows AI/automation advantage"
+  ]
 }`;
 
   const azureUrl = `${AZURE_OPENAI_ENDPOINT}/openai/deployments/${AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${AZURE_OPENAI_API_VERSION}`;
@@ -439,7 +608,29 @@ You MUST identify which constraint type applies to each section and extract it a
 Return ONLY valid JSON with no markdown formatting.`;
 
   const userPrompt = `Read this briefing document THOROUGHLY and extract the complete presentation structure.
-Pay special attention to constraints - some sections specify max slides, others specify time duration:
+Pay special attention to constraints - some sections specify max slides, others specify time duration.
+
+**CRITICAL RULE FOR slideTopics:**
+- Extract slideTopics ONLY if they are EXPLICITLY LISTED in the source document
+- EXPLICIT LISTS include: numbered lists (1. 2. 3.), bulleted lists (• •), or named sections with clear headings
+- Examples of EXPLICIT: "1. Executive Summary ○ Overview of...", "2. Centers of Excellence", "3. Key Messages"
+- Examples of NOT EXPLICIT: "Please present five case studies" (no specific titles listed)
+- If a section describes activities WITHOUT listing specific slide titles, return slideTopics as EMPTY ARRAY []
+- For example: "Part Two: Five Case Studies" with no specific slide titles → slideTopics: []
+- DO NOT invent, infer, or generate plausible topics
+
+**CRITICAL FOR MQ/CC SECTIONS (Part Four):**
+If a section mentions "MQ Evaluation Criteria" or "Critical Capabilities" AND lists them individually, extract EACH INDIVIDUAL CRITERION as a separate slideTopics entry.
+For example, if the document lists:
+  1. Customer Experience
+  2. Operations  
+  3. Offering Strategy
+  4. Product/Service
+  
+Then slideTopics should be: ["Customer Experience", "Operations", "Offering Strategy", "Product/Service"]
+
+DO NOT summarize multiple criteria into generic categories like "MQ Evaluation Criteria".
+EXTRACT EACH SPECIFIC CRITERION INDIVIDUALLY - but ONLY if explicitly listed in the document.
 
 ${briefingPack.substring(0, 30000)}
 
@@ -455,17 +646,26 @@ Return JSON in this format:
       "constraintType": "time",
       "timeInMinutes": 15,
       "maxSlides": null,
-      "slideTopics": ["Executive Summary", "Centers of Excellence", "Recent Acquisitions", "Cloud ERP Strategy"],
+      "slideTopics": ["Executive Summary", "Centers of Excellence & Innovation", "Key Messages", "Strengths & Areas for Improvement", "Sweet Spots & Square Pegs", "Key Risks and Mitigation", "Strategy, Value Proposition, and Key Differentiators"],
       "keyPoints": ["Extract 3-5 key facts that must be covered in this section"]
     },
     {
-      "name": "Scenario Demos",
+      "name": "Part Two: Five Case Studies",
+      "duration": "45 minutes",
+      "constraintType": "time",
+      "timeInMinutes": 45,
+      "maxSlides": null,
+      "slideTopics": [],
+      "keyPoints": ["Extract key requirements for case studies if specified"]
+    },
+    {
+      "name": "Part Four: MQ and CC Submission",
       "duration": "30 minutes",
       "constraintType": "slides",
       "timeInMinutes": 30,
-      "maxSlides": 5,
-      "slideTopics": ["Demo 1", "Demo 2", "Demo 3"],
-      "keyPoints": ["Max 5 slides for demos regardless of time"]
+      "maxSlides": 16,
+      "slideTopics": ["Customer Experience", "Operations", "Offering Strategy", "Product/Service", "Sales Execution", "Sales Strategy", "Business Model", "Viability", "Innovation", "Vertical/Industry Strategy", "Geographic Strategy", "Marketing Strategy", "Marketing Execution"],
+      "keyPoints": ["Extract each individual MQ criterion from the document - do not summarize into categories"]
     }
   ],
   "constraints": {
@@ -529,7 +729,7 @@ CRITICAL:
  * STEP 2: Generate slides for a specific section using narrative context
  * CRITICAL: Maps each briefing requirement to specific search queries to pull real data
  */
-async function generateSectionSlides(section, briefingPack, briefingInstructions, analystFirm, aiModel, narrative, vendorResponse) {
+async function generateSectionSlides(section, briefingPack, briefingInstructions, analystFirm, aiModel, narrative, vendorResponse, onProgress = null) {
   const firmGuidance = getFirmGuidance(analystFirm);
   
   // Get evaluation criteria for this analyst firm
@@ -585,24 +785,39 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
   
   const sectionQueries = sectionSearchQueries[section.name] || [`${section.name} IBM Cloud ERP`];
   
-  for (let i = 0; i < sectionQueries.length; i++) {
-    const query = sectionQueries[i];
+  // Build document type filter based on section and retrieval strategy
+  // Strategy: RFI Response is always primary; Fact Source only for Part One
+  // See docs/DOCUMENT-RETRIEVAL-STRATEGY.md for details
+  let searchFilter;
+  if (section.name === 'Part One: Vision and Execution') {
+    // Part One: Include RFI Response + Fact Source for supplemental data
+    searchFilter = `documentType eq 'rfi_response' OR documentType eq 'fact_source'`;
+  } else {
+    // Other sections: RFI Response only
+    searchFilter = `documentType eq 'rfi_response'`;
+  }
+  
+  // Search queries with document type filtering
+  const allQueries = sectionQueries.map(q => ({ query: q, filter: searchFilter, label: `${section.name}` }));
+  
+  for (let i = 0; i < allQueries.length; i++) {
+    const { query, filter, label } = allQueries[i];
     try {
-      console.log(`   🔍 Search ${i + 1}/${sectionQueries.length}: "${query}"`);
-      const searchResults = await searchDocuments(query, 25);
+      console.log(`   🔍 Search ${i + 1}/${allQueries.length}${label ? ` (${label})` : ''}: "${query.substring(0, 80)}..."`);
+      const searchResults = await searchDocuments(query, 25, filter);
       if (searchResults && searchResults.length > 100) {
         requirementContexts[`search_${i + 1}`] = searchResults;
-        console.log(`   ✅ Retrieved ${searchResults.length} characters`);
+        console.log(`   ✅ Retrieved ${searchResults.length} characters${label ? ` from ${label}` : ''}`);
       } else {
-        console.warn(`   ⚠️  No results for: "${query}"`);
+        console.warn(`   ⚠️  No results for: "${query.substring(0, 80)}..."`);
         requirementContexts[`search_${i + 1}`] = '[No data found]';
       }
       // Small throttle between searches to avoid rate limits
-      if (i < sectionQueries.length - 1) {
+      if (i < allQueries.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     } catch (searchErr) {
-      console.warn(`   ⚠️  Search error for "${query}":`, searchErr.message);
+      console.warn(`   ⚠️  Search error for "${query.substring(0, 80)}...":`, searchErr.message);
       requirementContexts[`search_${i + 1}`] = '[Search failed]';
     }
   }
@@ -627,11 +842,27 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
   // Build requirement context string with all search results
   let relevantContext = '\n\nTARGETED DATA FROM AZURE SEARCH (2026 SOURCES):\n';
   relevantContext += '(These search results are the PRIMARY SOURCE for slide content. Use ONLY data from these results.)\n';
-  sectionQueries.forEach((query, i) => {
-    relevantContext += `\n---\nTarget ${i + 1}: "${query}"\n---\n`;
+  allQueries.forEach((query, i) => {
+    relevantContext += `\n---\nSearch ${i + 1}: "${query.query}"\n---\n`;
     relevantContext += (requirementContexts[`search_${i + 1}`] || '[No data found]');
     relevantContext += '\n';
   });
+
+  // Optional: augment Part One with Foundry agent (web knowledge source) for official IBM/newsroom data
+  let foundryWebContext = '';
+  if (section.name === 'Part One: Vision and Execution') {
+    console.log('   🌐 Querying Foundry agent for official IBM/newsroom context...');
+    const foundryPrompt = `Provide factual, citation-ready bullets from IBM official and newsroom sources about Cloud ERP: vision, differentiation, scale, geographic footprint, partnership posture, innovation investments, and recent announcements. Avoid marketing fluff; prefer measurable facts, dated announcements, partner designations, and platform innovations. Return concise bullets only.`;
+    foundryWebContext = await queryFoundryAgent(foundryPrompt);
+    if (foundryWebContext) {
+      console.log('   ✅ Foundry agent returned web-grounded context');
+      relevantContext += '\n---\nFOUNDRY WEB-GROUNDED CONTEXT (ibm.com/newsroom)\n---\n';
+      relevantContext += foundryWebContext;
+      relevantContext += '\n';
+    } else {
+      console.warn('   ⚠️  Foundry agent returned no web context (continuing with Azure Search only)');
+    }
+  }
 
   // Calculate slide count based on constraint type
   let slideConstraint = '';
@@ -682,13 +913,85 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
     const extractedFacts = await agentExtractFacts(extractionInput);
     console.log(`   ✅ Extracted: ${extractedFacts.scale?.length || 0} scale metrics, ${extractedFacts.capabilities?.length || 0} capabilities, ${extractedFacts.partnerships?.length || 0} partnerships`);
     
+    // Check source diversity (ensure ibm.com and newsroom represented)
+    const checkSourceDiversity = (facts) => {
+      const sources = new Set();
+      Object.values(facts).forEach(factArray => {
+        if (Array.isArray(factArray)) {
+          factArray.forEach(fact => {
+            if (fact.source) {
+              const domain = fact.source.match(/https?:\/\/([^\/]+)/)?.[1];
+              if (domain) sources.add(domain);
+            }
+          });
+        }
+      });
+      
+      const hasIbmCom = Array.from(sources).some(s => s.includes('ibm.com'));
+      const hasNewsroom = Array.from(sources).some(s => s.includes('newsroom'));
+      
+      console.log(`   🔍 Source diversity: ${sources.size} unique domains`);
+      if (sources.size > 0) {
+        console.log(`      - Domains: ${Array.from(sources).slice(0, 5).join(', ')}${sources.size > 5 ? '...' : ''}`);
+      }
+      if (!hasIbmCom) console.warn(`      ⚠️  No ibm.com sources found - may be missing official content`);
+      if (!hasNewsroom) console.warn(`      ⚠️  No newsroom sources found - may be missing press releases`);
+      
+      return { hasIbmCom, hasNewsroom, totalDomains: sources.size };
+    };
+    
+    checkSourceDiversity(extractedFacts);
+    
+    if (onProgress) onProgress(4, 6, `📊 STAGE 1: Data Extraction|||Extracted ${extractedFacts.scale?.length || 0} metrics, ${extractedFacts.capabilities?.length || 0} capabilities, ${extractedFacts.partnerships?.length || 0} partnerships`);
+    
+    // STEP 1.5: Narrative Spine Agent - Generate hidden narrative spine to guide structure/content
+    console.log(`   [1.5/5] Narrative Spine Agent - generating hidden narrative spine...`);
+    if (onProgress) onProgress(4, 6, `📖 STAGE 2: Strategic Narrative|||Generating narrative spine to guide slide structure and content`);
+    let narrativeSpine = null;
+    try {
+      const rfiContext = {
+        sectionName: section.name,
+        briefingTheme: narrative.overarchingTheme,
+        extractedFacts: extractedFacts,
+        evaluationCriteria: criteriaList
+      };
+      const briefingStructure = {
+        duration: section.duration,
+        targetSlides: targetSlides,
+        requiredTopics: section.slideTopics || [],
+        keyMessages: narrative.keyMessages || []
+      };
+      const spineResult = await agentGenerateSpine(rfiContext, briefingStructure);
+      narrativeSpine = spineResult.spine;
+      
+      // Validate spine completeness
+      const spineValidation = await validateSpineCompleteness(narrativeSpine);
+      if (!spineValidation.is_complete) {
+        console.warn(`   ⚠️  Narrative spine has gaps: ${spineValidation.missing_fields.join(', ')}`);
+        if (spineValidation.gaps_count > 0) {
+          console.warn(`   ⚠️  ${spineValidation.gaps_count} unconfirmed theses flagged for AR/Offering validation`);
+        }
+      } else {
+        console.log(`   ✅ Narrative spine complete with ${spineValidation.gaps_count} gaps flagged`);
+      }
+      if (onProgress) onProgress(4, 6, `📖 STAGE 2: Strategic Narrative|||Spine ready (${spineValidation.gaps_count} gaps flagged for validation)`);
+    } catch (spineErr) {
+      console.error(`   ❌ CRITICAL: Narrative spine generation FAILED`);
+      console.error(`   Error: ${spineErr.message}`);
+      console.error(`   Stack: ${spineErr.stack}`);
+      if (onProgress) onProgress(4, 6, `❌ CRITICAL: Spine generation failed - stopping deck generation`);
+      throw new Error(`Narrative spine generation is REQUIRED but failed: ${spineErr.message}`);
+    }
+    
     // STEP 2: Structure Planning Agent - Plan slide structure and layout distribution
     console.log(`   [2/4] Structure Planning Agent - planning ${targetSlides} slides...`);
+    if (onProgress) onProgress(4, 6, `📐 STAGE 3: Structure Planning|||Planning ${targetSlides} slides with layouts and axis alignment`);
     const planningInput = {
       facts: extractedFacts,
       sectionName: section.name,
       targetSlides: targetSlides,
       referenceExamples: deck2024Examples, // Pass as text context for now
+      narrativeSpine: narrativeSpine, // Pass hidden spine to guide structure
       narrative: {
         theme: narrative.overarchingTheme,
         sectionRole: narrative.sectionTransitions[section.name] || 'Develop key capabilities'
@@ -702,32 +1005,96 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
       }
     };
     
+    console.log(`   🔍 DEBUG: Planning input for "${section.name}":`, {
+      targetSlides,
+      requiredTopicsCount: (section.slideTopics || []).length,
+      requiredTopics: section.slideTopics || [],
+      factsCount: Object.keys(extractedFacts || {}).length
+    });
+    
     const structurePlan = await agentPlanStructure(planningInput);
+    console.log(`   🔍 DEBUG: Structure plan result for "${section.name}": ${structurePlan?.length || 0} slides`);
+    
     if (!structurePlan || structurePlan.length === 0) {
-      console.warn(`   ⚠️  Structure planning returned empty, falling back to default structure`);
+      console.warn(`   ⚠️  Structure planning returned empty for "${section.name}"`);
+      console.warn(`   📊 Input had: ${(section.slideTopics || []).length} required topics, ${targetSlides} target slides`);
+      console.warn(`   ⚠️  This should NOT happen for Part Four - check structure planning agent logic!`);
       return [];
     }
     console.log(`   ✅ Planned ${structurePlan.length} slides with layouts`);
+    if (onProgress) onProgress(4, 6, `� STAGE 3: Structure Planning|||Planned ${structurePlan.length} slides with layouts and fact distribution`);
     
     // STEP 3: Content Synthesis Agent - Generate content for each slide
     console.log(`   [3/4] Content Synthesis Agent - generating content for ${structurePlan.length} slides...`);
+    if (onProgress) onProgress(4, 6, `📝 STAGE 4: Content Generation|||Synthesizing compelling narratives for ${structurePlan.length} slides`);
+    
+    // Track used facts AND key phrases to prevent duplication
+    const usedFactIds = new Set();
+    const factUsageCount = {};
+    const usedKeyPhrases = new Map(); // phrase -> { slideIndex, count }
+    
     const generatedSlides = [];
     for (let i = 0; i < structurePlan.length; i++) {
       const slidePlan = structurePlan[i];
       console.log(`      - Generating slide ${i + 1}/${structurePlan.length}: "${slidePlan.topic}"`);
+      if (onProgress) onProgress(4, 6, `📝 STAGE 4: Content Generation|||Slide ${i + 1} of ${structurePlan.length}: "${slidePlan.topic}"`);
       
       const synthesisInput = {
         slidePlan: slidePlan,
         facts: extractedFacts,
+        narrativeSpine: narrativeSpine, // Pass spine for narrative consistency
         referenceExamples: deck2024Examples, // Pass as text context
         narrative: {
           theme: narrative.overarchingTheme,
           keyMessages: narrative.keyMessages
         },
-        evaluationCriteria: criteriaList
+        evaluationCriteria: criteriaList,
+        usedFactIds: Array.from(usedFactIds), // Pass already-used facts
+        factUsageCount: factUsageCount, // Pass usage statistics
+        usedKeyPhrases: Array.from(usedKeyPhrases.keys()) // Pass repeated phrases to AVOID
       };
       
       const generatedSlide = await agentSynthesizeContent(synthesisInput);
+      
+      // Track facts used in this slide to prevent repetition
+      if (generatedSlide.evidence) {
+        const factIds = generatedSlide.evidence.match(/\[(\w+)\[(\d+)\]\]/g) || [];
+        factIds.forEach(id => {
+          usedFactIds.add(id);
+          factUsageCount[id] = (factUsageCount[id] || 0) + 1;
+        });
+        
+        // Warn if facts heavily reused
+        const overusedFacts = Object.entries(factUsageCount)
+          .filter(([_, count]) => count >= 3)
+          .map(([id]) => id);
+        if (overusedFacts.length > 0) {
+          console.warn(`      ⚠️  Facts reused 3+ times: ${overusedFacts.join(', ')}`);
+        }
+      }
+      
+      // CRITICAL: Track key metric phrases to detect duplication
+      const slideText = extractSlideText(generatedSlide);
+      const keyMetrics = slideText.match(/\b\d+\s*(?:%|percent)\b/gi) || [];
+      const keyPhrases = [
+        ...keyMetrics,
+        ...slideText.match(/\b(?:implementation|timeline|productivity|return rate|consultants|countries|reduction|improvement|increase|gain)[s]?\s+(?:by|of|across)?\s*\d+\s*(?:%|percent|countries|consultants)?\b/gi) || []
+      ];
+      
+      keyPhrases.forEach(phrase => {
+        const normalized = phrase.toLowerCase().trim();
+        if (usedKeyPhrases.has(normalized)) {
+          const existing = usedKeyPhrases.get(normalized);
+          existing.count++;
+          existing.slides.push(i + 1);
+          if (existing.count >= 3) {
+            console.warn(`      ⚠️  REPEATED PHRASE (${existing.count}x): "${phrase}" on slides ${existing.slides.join(', ')}`);
+          }
+        } else {
+          usedKeyPhrases.set(normalized, { count: 1, slides: [i + 1] });
+        }
+      });
+      
       generatedSlides.push(generatedSlide);
       
       // Throttle generation to prevent TPM rate limits (3s delay)
@@ -737,15 +1104,56 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
       }
     }
     console.log(`\n   ✅ Generated ${generatedSlides.length} complete slides`);
+    if (onProgress) onProgress(4, 6, `📝 STAGE 4: Content Generation|||Completed ${generatedSlides.length} slides with evidence citations`);
+    
+    // STEP 3.5: Narrative Transformation Agent - Transform to executive briefing style
+    console.log(`   [3.5/5] Narrative Transformation Agent - transforming to executive briefing style...`);
+    if (onProgress) onProgress(4, 6, `✨ STAGE 5: Executive Polish|||Transforming ${generatedSlides.length} slides to executive briefing style`);
+    const transformedSlides = [];
+    for (let i = 0; i < generatedSlides.length; i++) {
+      const slide = generatedSlides[i];
+      
+      // Determine narrative arc stage based on section
+      let arcStage = 'proof'; // Default
+      if (section.name?.toLowerCase().includes('vision') || section.name?.toLowerCase().includes('executive summary')) {
+        arcStage = 'vision';
+      } else if (section.name?.toLowerCase().includes('case') || section.name?.toLowerCase().includes('use case')) {
+        arcStage = 'outcomes';
+      } else if (section.name?.toLowerCase().includes('innovation') || section.name?.toLowerCase().includes('roadmap') || section.name?.toLowerCase().includes('future')) {
+        arcStage = 'innovation';
+      }
+      
+      const transformContext = {
+        arcStage,
+        sectionName: section.name,
+        analystFirm,
+        slideNumber: i + 1,
+        narrativeSpine: narrativeSpine // Pass spine for narrative consistency
+      };
+      
+      if (onProgress) onProgress(4, 6, `✨ STAGE 5: Executive Polish|||Polishing slide ${i + 1} of ${generatedSlides.length}`);
+      const transformedSlide = await agentTransformNarrative(slide, transformContext);
+      transformedSlides.push(transformedSlide);
+      
+      // Throttle transformation (3s delay)
+      if (i < generatedSlides.length - 1) {
+        process.stdout.write('.'); // Show activity
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
+    console.log(`\n   ✅ Transformed ${transformedSlides.length} slides to executive briefing style`);
+    if (onProgress) onProgress(4, 6, `✅ Transformed ${transformedSlides.length} slides to executive briefing style...`);
     
     // STEP 4: Quality Validation Agent - Validate all slides
-    console.log(`   [4/4] Quality Validation Agent - validating ${generatedSlides.length} slides...`);
-    const validationResult = await agentValidateBatch(generatedSlides, deck2024Examples, extractedFacts);
+    console.log(`   [4/5] Quality Validation Agent - validating ${transformedSlides.length} slides...`);
+    if (onProgress) onProgress(4, 6, `🔍 STAGE 6: Quality Validation|||Validating ${transformedSlides.length} slides for evidence and compliance`);
+    const validationResult = await agentValidateBatch(transformedSlides, deck2024Examples, extractedFacts, narrativeSpine);
     
     const passCount = validationResult.slideResults.filter(r => r.overallPass).length;
     const avgScore = parseFloat(validationResult.averageScore);
     const passRate = parseFloat(validationResult.passRate);
-    console.log(`   ✅ Validation: ${passCount}/${generatedSlides.length} passed (${passRate.toFixed(1)}%), avg score: ${avgScore}/100`);
+    console.log(`   ✅ Validation: ${passCount}/${transformedSlides.length} passed (${passRate.toFixed(1)}%), avg score: ${avgScore}/100`);
+    if (onProgress) onProgress(4, 6, `🔍 STAGE 6: Quality Validation|||Completed - ${passCount} of ${transformedSlides.length} slides passed (${passRate.toFixed(1)}% avg: ${avgScore.toFixed(0)}/100)`);
     
     // Show sample issues from validation
     const allIssues = validationResult.slideResults.flatMap(r => r.issues || []);
@@ -818,7 +1226,7 @@ async function generateSectionSlides(section, briefingPack, briefingInstructions
   };
 
     // Return agent-generated slides with case study placeholders if needed
-    const finalSlides = ensureCasePlaceholders(generatedSlides);
+    const finalSlides = ensureCasePlaceholders(transformedSlides);
     return finalSlides;
     
   } catch (agentError) {
@@ -953,15 +1361,208 @@ function computeGaps(slides) {
 }
 
 /**
+ * Convert deck structure to markdown (TEMPORARY BYPASS for testing)
+ */
+export const createMarkdownFromDeck = async (deckStructure) => {
+  console.log('📝 [BRIEFING DECK] Creating Markdown from deck structure (TEMPORARY BYPASS)...');
+  
+  try {
+    let markdown = '# Briefing Deck\n\n';
+    
+    // Add metadata if present
+    if (deckStructure.title) {
+      markdown += `**Title:** ${deckStructure.title}\n\n`;
+    }
+    if (deckStructure.subtitle) {
+      markdown += `**Subtitle:** ${deckStructure.subtitle}\n\n`;
+    }
+    
+    // Add slides
+    if (deckStructure.slides && deckStructure.slides.length > 0) {
+      markdown += `## Slides (${deckStructure.slides.length} total)\n\n`;
+      
+      deckStructure.slides.forEach((slide, idx) => {
+        markdown += `### Slide ${idx + 1}: ${slide.title || 'Untitled'}\n\n`;
+        
+        if (slide.layout) {
+          markdown += `**Layout:** ${slide.layout}\n\n`;
+        }
+        
+        if (slide.intro) {
+          markdown += `**Intro:** ${slide.intro}\n\n`;
+        }
+        
+        // Handle various content formats
+        if (slide.content) {
+          const c = slide.content;
+          
+          if (c.key_bullets && Array.isArray(c.key_bullets)) {
+            markdown += '**Key Points:**\n';
+            c.key_bullets.forEach(bullet => {
+              const text = typeof bullet === 'object' ? bullet.text : bullet;
+              // NO SOURCE IN MAIN CONTENT - moved to speaker notes
+              markdown += `- ${text}\n`;
+            });
+            markdown += '\n';
+          }
+          
+          if (c.left_bullets && Array.isArray(c.left_bullets)) {
+            markdown += '**Left Column:**\n';
+            c.left_bullets.forEach(bullet => {
+              const text = typeof bullet === 'object' ? bullet.text : bullet;
+              // NO SOURCE IN MAIN CONTENT
+              markdown += `- ${text}\n`;
+            });
+            markdown += '\n';
+          }
+          
+          if (c.right_bullets && Array.isArray(c.right_bullets)) {
+            markdown += '**Right Column:**\n';
+            c.right_bullets.forEach(bullet => {
+              const text = typeof bullet === 'object' ? bullet.text : bullet;
+              // NO SOURCE IN MAIN CONTENT
+              markdown += `- ${text}\n`;
+            });
+            markdown += '\n';
+          }
+          
+          if (c.cards && Array.isArray(c.cards)) {
+            markdown += '**Case Studies/Cards:**\n';
+            c.cards.forEach((card, cardIdx) => {
+              markdown += `${cardIdx + 1}. ${card.case_title || `Card ${cardIdx + 1}`}\n`;
+              if (card.use_case) markdown += `   - Use case: ${card.use_case}\n`;
+              if (card.industry) markdown += `   - Industry: ${card.industry}\n`;
+              if (card.region) markdown += `   - Region: ${card.region}\n`;
+              if (card.outcome_kpi) markdown += `   - Outcome: ${card.outcome_kpi}\n`;
+              if (card.reference_status) markdown += `   - Reference: ${card.reference_status}\n`;
+            });
+            markdown += '\n';
+          }
+          
+          if (c.items && Array.isArray(c.items)) {
+            markdown += '**Items/Q&A:**\n';
+            c.items.forEach((item, itemIdx) => {
+              if (typeof item === 'object') {
+                markdown += `${itemIdx + 1}. ${item.question || item.title || 'Item'}\n`;
+                if (item.answer) markdown += `   Answer: ${item.answer}\n`;
+                if (item.evidence) markdown += `   Evidence: ${item.evidence}\n`;
+              } else {
+                markdown += `${itemIdx + 1}. ${item}\n`;
+              }
+            });
+            markdown += '\n';
+          }
+          
+          if (c.tiles && Array.isArray(c.tiles)) {
+            markdown += '**Tiles:**\n';
+            c.tiles.forEach((tile, tileIdx) => {
+              markdown += `${tileIdx + 1}. ${tile.title || tile.label || `Tile ${tileIdx + 1}`}\n`;
+              if (tile.value) markdown += `   Value: ${tile.value}\n`;
+              if (tile.content) markdown += `   ${tile.content}\n`;
+              if (tile.context) markdown += `   Context: ${tile.context}\n`;
+            });
+            markdown += '\n';
+          }
+        }
+        
+        // SPEAKER NOTES SECTION (moved from inline citations)
+        markdown += '**Speaker Notes:**\n';
+        
+        // Add evidence/citations to speaker notes
+        if (slide.evidence) {
+          markdown += `- Evidence: ${slide.evidence}\n`;
+        }
+        if (slide.evidenceCitations && Array.isArray(slide.evidenceCitations)) {
+          slide.evidenceCitations.forEach(citation => {
+            markdown += `- Source: ${citation}\n`;
+          });
+        }
+        
+        // Add source references from bullets to speaker notes
+        if (slide.content) {
+          const c = slide.content;
+          let sources = [];
+          
+          // Collect sources from bullets
+          if (c.key_bullets && Array.isArray(c.key_bullets)) {
+            c.key_bullets.forEach(bullet => {
+              if (typeof bullet === 'object' && bullet.source) {
+                sources.push(bullet.source);
+              }
+            });
+          }
+          if (c.left_bullets && Array.isArray(c.left_bullets)) {
+            c.left_bullets.forEach(bullet => {
+              if (typeof bullet === 'object' && bullet.source) {
+                sources.push(bullet.source);
+              }
+            });
+          }
+          if (c.right_bullets && Array.isArray(c.right_bullets)) {
+            c.right_bullets.forEach(bullet => {
+              if (typeof bullet === 'object' && bullet.source) {
+                sources.push(bullet.source);
+              }
+            });
+          }
+          if (c.tiles && Array.isArray(c.tiles)) {
+            c.tiles.forEach(tile => {
+              if (tile.source) {
+                sources.push(tile.source);
+              }
+            });
+          }
+          
+          // Remove duplicates and add to speaker notes
+          sources = [...new Set(sources)];
+          if (sources.length > 0) {
+            markdown += `- Source references: ${sources.join('; ')}\n`;
+          }
+        }
+        
+        // Add MQ mapping to speaker notes
+        if (slide.mq_mapping && Array.isArray(slide.mq_mapping)) {
+          markdown += `- MQ Criteria Mapping: ${slide.mq_mapping.join('; ')}\n`;
+        }
+        
+        // Add talking points if present
+        if (slide.speakerNotes) {
+          markdown += `- Talking point: ${slide.speakerNotes}\n`;
+        }
+        
+        markdown += '\n---\n\n';
+      });
+    }
+    
+    // Convert markdown to buffer
+    const buffer = Buffer.from(markdown, 'utf-8');
+    
+    console.log('✅ [BRIEFING DECK] Markdown created (TEMPORARY BYPASS)');
+    console.log(`   Size: ${(buffer.length / 1024).toFixed(2)} KB`);
+    
+    return { markdown, buffer };
+  } catch (error) {
+    console.error('❌ [BRIEFING DECK] Error creating markdown:', error);
+    throw error;
+  }
+};
+
+/**
  * Create PowerPoint from generated deck structure using IBM template
+ * TEMPORARILY DISABLED - using markdown instead
  */
 export const createPresentationFromDeck = async (deckStructure) => {
-  console.log('📊 [BRIEFING DECK] Creating PowerPoint from deck structure...');
+  console.log('📊 [BRIEFING DECK] Creating PowerPoint from deck structure (USING MARKDOWN BYPASS)...');
   console.log('   Deck structure keys:', Object.keys(deckStructure || {}));
   console.log('   Slides count:', deckStructure?.slides?.length || 0);
   console.log('   Deck slides type:', typeof deckStructure?.slides);
 
   try {
+    // TEMPORARY: Use markdown instead of PowerPoint
+    const { buffer } = await createMarkdownFromDeck(deckStructure);
+    return buffer;
+    
+    /* ORIGINAL POWERPOINT CODE - COMMENTED OUT FOR TESTING
     const templateDir = path.join(__dirname, '..', 'templates');
     const outputDir = path.join(__dirname, '..', 'output');
     
@@ -1314,6 +1915,7 @@ export const createPresentationFromDeck = async (deckStructure) => {
     console.log(`   Content rendered on clean IBM template`);
 
     return buffer;
+    */
   } catch (error) {
     console.error('❌ [BRIEFING DECK] Error creating PowerPoint:', error);
     throw error;
@@ -1322,5 +1924,6 @@ export const createPresentationFromDeck = async (deckStructure) => {
 
 export default {
   generateBriefingDeck,
-  createPresentationFromDeck
+  createPresentationFromDeck,
+  createMarkdownFromDeck
 };
